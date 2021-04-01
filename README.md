@@ -1,0 +1,117 @@
+# Universal PreProcessor
+
+[UPP]: http://cdelord.fr/upp "Universal PreProcessor"
+[Panda]: http://cdelord.fr/panda "Pandoc add-ons (Lua filters for Pandoc)"
+[Lua]: http://www.lua.org/
+[GitHub]: https://github.com/CDSoft/upp
+[cdelord.fr]: http://cdelord.fr
+
+UPP is a minimalist and generic text preprocessor using Lua macros.
+
+If you need a Pandoc preprocessor, [Panda] may be a better choice.
+
+# Open source
+
+[UPP] is an Open source software.
+Anybody can contribute on [GitHub] to:
+
+- suggest or add new features
+- report or fix bugs
+- improve the documentation
+- add some nicer examples
+- find new usages
+- ...
+
+# Installation
+
+## Prerequisites
+
+- [Lua]
+
+## Installation from source
+
+``` sh
+$ git clone https://github.com/CDSoft/upp.git
+$ cd upp
+$ make install      # install upp in ~/.local/bin
+```
+
+## Test
+
+``` sh
+$ make test
+```
+
+# Usage
+
+``` sh
+$ upp [options] files
+```
+
+where `files` is the list of files (`-` for `stdin`).
+
+options:
+
+- `-h`: show help
+- `-l script`: execute a Lua script
+- `-e expression`: execute a Lua expression
+- `-o file`: redirect the output to `file`
+- `-p path`: add a path to `package.path`
+
+# Documentation
+
+Lua expressions are embedded in the document to process: `$( Lua expression )`.
+
+Lua chunks can also be embedded in the document to add new definitions: `:( Lua chunk )`.
+
+A macro is just a Lua function. Some macros are predefined by `upp`.
+New macros can be defined by loading Lua scripts (options `-l` and `-e`) or embedded as Lua chunks.
+
+## Example
+
+```
+The user's home is $(os.getenv "HOME").
+```
+
+## Builtin macros
+
+* All Lua functions and modules are available as `upp` macros (see <https://www.lua.org/manual/>)
+* `upp(Lua_expression)`: Evaluate a Lua expression and outputs its result.
+* `import(script)`: Evaluate a Lua script (e.g. to define new macros).
+* `include(filename`: Include a file in the currently preprocessed file.
+* `when(condition)(text)`: process `text` if `condition` is true.
+
+## Example
+
+```
+Import a Lua script: :(import "script_name")
+Embed a Lua script: :( Lua script )
+Evaluate a Lua expression: $( 1 + lua_function(lua_variable) )
+Include another document: $(include "other_document_name")
+Conditional text: $(when (lang == "fr") [[ Ce texte est écrit en français ! ]])
+```
+
+# License
+
+    This file is part of UPP.
+
+    UPP is free software: you can redistribute it and/or modify
+    it under the terms of the GNU General Public License as published by
+    the Free Software Foundation, either version 3 of the License, or
+    (at your option) any later version.
+
+    UPP is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
+
+    You should have received a copy of the GNU General Public License
+    along with UPP.  If not, see <https://www.gnu.org/licenses/>.
+
+    For further information about UPP you can visit
+    http://cdelord.fr/upp
+
+# Feedback
+
+Your feedback and contributions are welcome.
+You can contact me at [cdelord.fr].
