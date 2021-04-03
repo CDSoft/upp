@@ -48,6 +48,10 @@ local function map(f, xs)
     return ys
 end
 
+local function clone(xs)
+    return map(id, xs)
+end
+
 local function die(msg)
     io.stderr:write("upp: "..msg.."\n")
     os.exit(1)
@@ -155,7 +159,7 @@ local function new_env()
 end
 
 local function parse_args()
-    local args = map(id, arg)
+    local args = clone(arg)
     local need_to_process_stdin = true
     local actions = {}
     local function shift(n) for i = 1,n do table.remove(args, 1) end end
