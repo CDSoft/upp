@@ -42,6 +42,12 @@ local function id(x)
     return x
 end
 
+local function const(x)
+    return function() return x end
+end
+
+local nop = const(nil)
+
 local function map(f, xs)
     local ys = {}
     for _, x in ipairs(xs) do table.insert(ys, f(x)) end
@@ -91,7 +97,7 @@ local output_file = nil
 local function set_output(output)
     if output_file then die("multiple -o option") end
     output_file = output
-    return function(env) end
+    return nop
 end
 
 local function add_path(path)
@@ -99,8 +105,7 @@ local function add_path(path)
 end
 
 local function process(name, content, env)
-    local output = env.upp(content)
-    table.insert(outputs, output)
+    table.insert(outputs, env.upp(content))
 end
 
 local function process_stdin()
@@ -110,12 +115,16 @@ local function process_stdin()
     end
 end
 
+local function read_file(filename)
+    local f = assert(io.open(filename))
+    local content = f:read "a"
+    f:close()
+    return content
+end
+
 local function process_file(filename)
     return function(env)
-        local f = assert(io.open(filename))
-        local content = f:read "a"
-        f:close()
-        process(filename, content, env)
+        process(filename, read_file(filename), env)
     end
 end
 
@@ -140,16 +149,9 @@ local function new_env()
             end,
             import = function(name) load_script(name)(env) end,
             include = function(filename)
-                local f = assert(io.open(filename))
-                local content = f:read "a"
-                f:close()
-                return env.upp(content)
+                return env.upp(read_file(filename))
             end,
-            when = function(cond)
-                return function(what)
-                    if cond then return what else return "" end
-                end
-            end,
+            when = function(cond) return cond and id or const "" end,
         },
     }
     for k, v in pairs(_G) do env_mt.__index[k] = v end
