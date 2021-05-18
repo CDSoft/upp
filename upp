@@ -139,17 +139,25 @@ local function new_env()
     local env_mt = {
         __index = {
             upp = function(content)
+                local function format_value(x)
+                    local x_mt = getmetatable(x)
+                    if x_mt and x_mt.__tostring then return env.tostring(x) end
+                    if type(x) == "table" then
+                        -- each item of an array is a separate block of text
+                        return table.concat(map(env.tostring, x), x.sep or env.BLOCK_SEP or "\n")
+                    end
+                    return env.tostring(x)
+                end
                 return (content:gsub("([$:])(%b())", function(t, x)
                     if t == "$" then -- x is an expression
-                        local y = (assert(env.load("return "..x, x, "t", env)))()
+                        local y = (assert(env.load("return "..x:sub(2, -2), x, "t", env)))()
                         -- if the expression can be evaluated, process it
-                        -- otherwise leave it untouched
-                        return y and env.upp(env.tostring(y))
+                        return env.upp(format_value(y))
                     elseif t == ":" then -- x is a chunk
                         local y = (assert(env.load(x:sub(2, -2), x, "t", env)))()
                         -- if the chunk returns a value, process it
                         -- otherwise leave it blank
-                        return y and env.upp(env.tostring(y)) or ""
+                        return y ~= nil and env.upp(format_value(y)) or ""
                     end
                 end))
             end,

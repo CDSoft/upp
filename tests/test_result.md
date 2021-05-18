@@ -5,9 +5,9 @@
 - foo defined on the command line: foo = bar
 - foofoo defined in test_lib.lua: foofoo = barbar
 - z defined in an embedded chunk: z = 3
-- undefined is not defined: undefined = $(undefined)
+- undefined is not defined: undefined = nil
 
-foofoo can be undefined: foofoo = $(foofoo)
+foofoo can be undefined: foofoo = nil
 and redefined by reloading test_lib.lua: foofoo = barbar
 
 # Included file
@@ -31,3 +31,37 @@ lang = fr => Ce texte en français doit apparaitre !
 
 
 
+
+# Blocks (array items)
+
+
+
+## Default separator
+
+block #1
+block #2
+block #3
+
+## Globally overloaded separator
+
+
+block #1 - block #2 - block #3
+
+
+## Table specific separator
+
+
+
+block #1; block #2; block #3
+
+# User defined `__tostring` metamethod
+
+
+
+T(val=42)
+
+
+
+T(val=1)
+T(val=2)
+T(val=3)

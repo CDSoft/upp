@@ -67,6 +67,17 @@ Lua chunks can also be embedded in the document to add new definitions: `:( Lua 
 A macro is just a Lua function. Some macros are predefined by `upp`.
 New macros can be defined by loading Lua scripts (options `-l` and `-e`) or embedded as Lua chunks.
 
+Expression and chunks can return values. These values are formated according to their types:
+
+- `__tostring` method from a custom metatable:
+  if the value has a `__tostring` metamethod, it is used to format the value
+- arrays (with no `__tostring` metamethod):
+  items are concatenated (with `table.concat`) the separator is the first defined among:
+    - the `sep` field of the table
+    - the global `BLOCK_SEP` variable
+    - `"\\n"`
+- other types are formated by the default `tostring` function.
+
 ## Example
 
 ```

@@ -33,3 +33,37 @@ lang = $(lang) => Ce texte en français doit apparaitre !
 $(when(lang=="en") [[
 lang = $(lang) => You should not see this text in english!
 ]])
+
+# Blocks (array items)
+
+:(t = map(function(i) return ("block #%d"):format(i) end, {1, 2, 3}))
+
+## Default separator
+
+$(t)
+
+## Globally overloaded separator
+
+:(BLOCK_SEP = " - ")
+$(t)
+:(BLOCK_SEP = nil)
+
+## Table specific separator
+
+:(t.sep = "; ")
+
+$(t)
+
+# User defined `__tostring` metamethod
+
+:(function T(x)
+    local t = {val=x}
+    local mt = {__tostring = function(t) return ("T(val=%s)"):format(t.val) end}
+    return setmetatable(t, mt)
+end)
+
+$(T(42))
+
+:(t = map(T, {1, 2, 3}))
+
+$(t)
