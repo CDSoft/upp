@@ -76,10 +76,13 @@ The user's home is $(os.getenv "HOME").
 ## Builtin macros
 
 * All Lua functions and modules are available as `upp` macros (see <https://www.lua.org/manual/>)
-* `upp(Lua_expression)`: Evaluate a Lua expression and outputs its result.
-* `import(script)`: Evaluate a Lua script (e.g. to define new macros).
-* `include(filename`: Include a file in the currently preprocessed file.
+* `upp(Lua_expression)`: evaluate a Lua expression and outputs its result.
+* `die(msg, errcode)`: print `msg` and exit with the error code `errcode`.
+* `import(script)`: evaluate a Lua script (e.g. to define new macros).
+* `include(filename`: include a file in the currently preprocessed file.
 * `when(condition)(text)`: process `text` if `condition` is true.
+* `map(f, xs)`: return `{f(x) | x ∈ xs}`.
+* `filter(p, xs)`: return `{x | x ∈ xs ∧ p(x)}`.
 
 ## Example
 

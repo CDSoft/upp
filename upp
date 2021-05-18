@@ -54,13 +54,19 @@ local function map(f, xs)
     return ys
 end
 
+local function filter(p, xs)
+    local ys = {}
+    for _, x in ipairs(xs) do if p(x) then table.insert(ys, x) end end
+    return ys
+end
+
 local function clone(xs)
     return map(id, xs)
 end
 
-local function die(msg)
+local function die(msg, errcode)
     io.stderr:write("upp: "..msg.."\n")
-    os.exit(1)
+    os.exit(errcode or 1)
 end
 
 local function add_package_path(env, path)
@@ -147,11 +153,12 @@ local function new_env()
                     end
                 end))
             end,
+            die = die,
             import = function(name) load_script(name)(env) end,
-            include = function(filename)
-                return env.upp(read_file(filename))
-            end,
+            include = function(filename) return env.upp(read_file(filename)) end,
             when = function(cond) return cond and id or const "" end,
+            map = map,
+            filter = filter,
         },
     }
     for k, v in pairs(_G) do env_mt.__index[k] = v end
