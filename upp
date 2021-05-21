@@ -60,6 +60,27 @@ local function filter(p, xs)
     return ys
 end
 
+local function range(a, b, step)
+    step = step or (a < b and 1) or (a > b and -1)
+    local r = {}
+    if a < b then
+        assert(step > 0, "step shall be positive")
+        while a <= b do
+            table.insert(r, a)
+            a = a + step
+        end
+    elseif a > b then
+        assert(step < 0, "step shall be negative")
+        while a >= b do
+            table.insert(r, a)
+            a = a + step
+        end
+    else
+        table.insert(r, a)
+    end
+    return r
+end
+
 local function clone(xs)
     return map(id, xs)
 end
@@ -167,6 +188,7 @@ local function new_env()
             when = function(cond) return cond and id or const "" end,
             map = map,
             filter = filter,
+            range = range,
         },
     }
     for k, v in pairs(_G) do env_mt.__index[k] = v end

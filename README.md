@@ -94,6 +94,7 @@ The user's home is $(os.getenv "HOME").
 * `when(condition)(text)`: process `text` if `condition` is true.
 * `map(f, xs)`: return `{f(x) | x ∈ xs}`.
 * `filter(p, xs)`: return `{x | x ∈ xs ∧ p(x)}`.
+* `range(a, b, [step])`: return `{a, a+step, ..., b}`.
 
 ## Example
 

@@ -28,17 +28,32 @@ install:
 
 .PHONY: test
 
-test: ${BUILD}/test.md tests/test_result.md
-	diff ${BUILD}/test.md tests/test_result.md
+test: test_upp test_unit_tests
 	# Well done
+
+test_upp: ${BUILD}/test.md tests/test_result.md
+	diff $^
+
+test_unit_tests: ${BUILD}/unit_tests.c tests/unit_tests_result.c
+	diff $^
 
 ${BUILD}/test.md: upp tests/test.md tests/test_include.md tests/test_lib.lua Makefile
 	@mkdir -p ${BUILD}
-	UPP_PATH=tests ./upp -p tests -e 'foo="bar"' -l test_lib.lua tests/test.md -o ${BUILD}/test.md
+	UPP_PATH=tests ./upp -p tests -e 'foo="bar"' -l test_lib.lua tests/test.md -o $@
+
+${BUILD}/unit_tests.c: upp examples/unit_tests.lua tests/unit_tests.c Makefile
+	@mkdir -p ${BUILD}
+	./upp -p examples -l unit_tests.lua tests/unit_tests.c -o $@
+	clang-format -i $@
 
 .PHONY: diff
 
-diff: ${BUILD}/test.md tests/test_result.md
-	meld $^
+diff: diff_test diff_unit_tests
+
+diff_test: ${BUILD}/test.md tests/test_result.md
+	diff -q $^ || meld $^
+
+diff_unit_tests: ${BUILD}/unit_tests.c tests/unit_tests_result.c
+	diff -q $^ || meld $^
 
 .PHONY: doc
