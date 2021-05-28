@@ -1,0 +1,23 @@
+
+local function _pretty(t, indent)
+    if type(t) == "table" then
+        local keys = {}
+        for k, _ in pairs(t) do table.insert(keys, k) end
+        table.sort(keys)
+        local s = "{"
+        indent = indent or ""
+        local indent2 = indent.."  "
+        for _, k in ipairs(keys) do
+            s = s.."\n"..indent2..k.." = ".._pretty(t[k], indent2)
+        end
+        if #keys > 0 then s = s.."\n"..indent.."}" else s = s.."}" end
+        return s
+    else
+        return t
+    end
+end
+
+function pretty(x)
+    return setmetatable(x, {__tostring = _pretty})
+end
+

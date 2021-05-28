@@ -67,3 +67,54 @@ $(T(42))
 :(t = map(T, {1, 2, 3}))
 
 $(t)
+
+# Standard library tests
+
+:(import "pretty")
+:(BLOCK_SEP = ", ")
+
+## range:
+
+1,2..10: $(range(1, 10))
+1,3..9 : $(range(1, 10, 2))
+10..1  : $(range(10, 1))
+10,8..2: $(range(10, 1, -2))
+
+## map
+
+squares: $(map(function(x) return x*x end, range(1, 10)))
+
+## filter
+
+evens: $(filter(function(x) return x % 2 == 0 end, range(1, 10)))
+
+## concat
+
+{1,2,3} + {4,5,6} = $(concat({1,2,3},{4,5,6}))
+
+## merge
+
+{a=1,b=2,c=3} + {d=4,a=5,e=6} = $(pretty(merge({a=1,b=2,c=3},{d=4,a=5,e=6})))
+
+## path
+
+basename a/b/c = $(basename "a/b/c")
+dirname  a/b/c = $(dirname "a/b/c")
+
+join a/b c/d e/f = $(join("a/b", "c/d", "e/f"))
+join a/b /c/d e/f = $(join("a/b", "/c/d", "e/f"))
+join a/b c/d /e/f = $(join("a/b", "c/d", "/e/f"))
+
+## prefix/postfix
+
+add "/" to all items: $(map(prefix"/", {"a", "b", "c"}))
+add "/" to all items: $(map(postfix"/", {"a", "b", "c"}))
+
+## Counters
+
+:(import "counter")
+
+Count A's        : $(count "A") $(count "A") $(count "A")
+Count B's from 42: $(count("B", 42)) $(count "B") $(count "B")
+More A's         : $(count "A") $(count "A") $(count "A")
+More B's         : $(count "B") $(count "B") $(count "B")

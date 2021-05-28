@@ -38,6 +38,10 @@ Environment variables:
     UPP_PATH        paths to add to package.path
 ]]
 
+--[[----------------------------------------------------------------
+--   Various functions usable in macros
+--]]----------------------------------------------------------------
+
 local function id(x)
     return x
 end
@@ -81,6 +85,62 @@ local function range(a, b, step)
     return r
 end
 
+local function concat(...)
+    local t = {}
+    for _, ti in ipairs({...}) do
+        for _, v in ipairs(ti) do table.insert(t, v) end
+    end
+    return t
+end
+
+local function merge(...)
+    local t = {}
+    for _, ti in ipairs({...}) do
+        for k, v in pairs(ti) do t[k] = v end
+    end
+    return t
+end
+
+local function dirname(path)
+    return (path:gsub("/[^/]*$", ""))
+end
+
+local function basename(path)
+    return (path:gsub(".*/", ""))
+end
+
+local function join(...)
+    local ps = {}
+    for _, p in ipairs({...}) do
+        if p:match "^/" then
+            ps = {p}
+        else
+            table.insert(ps, p)
+        end
+    end
+    return table.concat(ps, "/")
+end
+
+local function realpath(name)
+    local p = io.popen("realpath -q "..name)
+    local path = p:read("a")
+    if p:close() then
+        return path:gsub("[ \n]*$", "")
+    end
+end
+
+local function prefix(pre)
+    return function(s) return pre..s end
+end
+
+local function postfix(post)
+    return function(s) return s..post end
+end
+
+--[[----------------------------------------------------------------
+--   Command line parser
+--]]----------------------------------------------------------------
+
 local function clone(xs)
     return map(id, xs)
 end
@@ -95,7 +155,8 @@ local function add_package_path(env, path)
     local dir_sep = config()
     local template_sep = config()
     local template = config()
-    env.package.path = env.package.path..template_sep..path..dir_sep..template..".lua"
+    local new_path = path..dir_sep..template..".lua"
+    env.package.path = new_path .. template_sep .. env.package.path
 end
 
 local function update_path(env, paths)
@@ -155,6 +216,36 @@ local function process_file(filename)
     end
 end
 
+local function parse_args()
+    local args = clone(arg)
+    local need_to_process_stdin = true
+    local actions = {}
+    local function shift(n) for i = 1,n do table.remove(args, 1) end end
+    while #args > 0 do
+        local action = nil
+        if args[1] == "-h" then print(help); os.exit(0)
+        elseif args[1] == "-l" then action = load_script(args[2]); shift(2)
+        elseif args[1] == "-e" then action = eval_expr(args[2]); shift(2)
+        elseif args[1] == "-o" then action = set_output(args[2]); shift(2)
+        elseif args[1] == "-p" then action = add_path(args[2]); shift(2)
+        elseif args[1] == "-" then action = process_stdin(); shift(1); need_to_process_stdin = false
+        elseif args[1] == "--" then shift(1); break
+        elseif args[1]:match "^%-" then die("Unknown option: "..args[1].."\n\n"..help)
+        else action = process_file(args[1]); shift(1); need_to_process_stdin = false
+        end
+        table.insert(actions, action)
+    end
+    while #args > 0 do
+        table.insert(actions, process_file(args[1])); shift(1); need_to_process_stdin = false
+    end
+    if need_to_process_stdin then table.insert(actions, process_stdin()) end
+    return actions
+end
+
+--[[----------------------------------------------------------------
+--   Preprocessor
+--]]----------------------------------------------------------------
+
 local function new_env()
     local env = {}
     local env_mt = {
@@ -189,38 +280,21 @@ local function new_env()
             map = map,
             filter = filter,
             range = range,
+            concat = concat,
+            merge = merge,
+            dirname = dirname,
+            basename = basename,
+            join = join,
+            realpath = realpath,
+            prefix = prefix,
+            postfix = postfix,
         },
     }
     for k, v in pairs(_G) do env_mt.__index[k] = v end
     env = setmetatable(env, env_mt)
+    update_path(env, realpath(dirname(arg[0]).."/../lib/upp"))
     update_path(env, os.getenv "UPP_PATH")
     return env
-end
-
-local function parse_args()
-    local args = clone(arg)
-    local need_to_process_stdin = true
-    local actions = {}
-    local function shift(n) for i = 1,n do table.remove(args, 1) end end
-    while #args > 0 do
-        local action = nil
-        if args[1] == "-h" then print(help); os.exit(0)
-        elseif args[1] == "-l" then action = load_script(args[2]); shift(2)
-        elseif args[1] == "-e" then action = eval_expr(args[2]); shift(2)
-        elseif args[1] == "-o" then action = set_output(args[2]); shift(2)
-        elseif args[1] == "-p" then action = add_path(args[2]); shift(2)
-        elseif args[1] == "-" then action = process_stdin(); shift(1); need_to_process_stdin = false
-        elseif args[1] == "--" then shift(1); break
-        elseif args[1]:match "^%-" then die("Unknown option: "..args[1].."\n\n"..help)
-        else action = process_file(args[1]); shift(1); need_to_process_stdin = false
-        end
-        table.insert(actions, action)
-    end
-    while #args > 0 do
-        table.insert(actions, process_file(args[1])); shift(1); need_to_process_stdin = false
-    end
-    if need_to_process_stdin then table.insert(actions, process_stdin()) end
-    return actions
 end
 
 local function process_args(actions)

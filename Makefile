@@ -17,7 +17,10 @@
 # http://cdelord.fr/upp
 
 INSTALL_PATH = $(HOME)/.local/bin
+LIB_INSTALL_PATH = $(dir $(INSTALL_PATH))/lib/upp
 BUILD = .build
+
+LIBS = $(wildcard lib/*)
 
 all: test
 
@@ -25,6 +28,7 @@ all: test
 
 install:
 	install upp ${INSTALL_PATH}/
+	install lib/* ${LIB_INSTALL_PATH}/
 
 .PHONY: test
 
@@ -37,9 +41,9 @@ test_upp: ${BUILD}/test.md tests/test_result.md
 test_unit_tests: ${BUILD}/unit_tests.c tests/unit_tests_result.c
 	diff $^
 
-${BUILD}/test.md: upp tests/test.md tests/test_include.md tests/test_lib.lua Makefile
+${BUILD}/test.md: upp tests/test.md tests/test_include.md tests/test_lib.lua Makefile $(LIBS)
 	@mkdir -p ${BUILD}
-	UPP_PATH=tests ./upp -p tests -e 'foo="bar"' -l test_lib.lua tests/test.md -o $@
+	UPP_PATH=tests ./upp -p tests -p lib -e 'foo="bar"' -l test_lib.lua tests/test.md -o $@
 
 ${BUILD}/unit_tests.c: upp examples/unit_tests.lua tests/unit_tests.c Makefile
 	@mkdir -p ${BUILD}
