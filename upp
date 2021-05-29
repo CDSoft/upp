@@ -275,7 +275,7 @@ local function new_env()
             end,
             die = die,
             import = function(name) load_script(name)(env) end,
-            include = function(filename) return env.upp(read_file(filename)) end,
+            include = function(filename) return read_file(filename) end,
             when = function(cond) return cond and id or const "" end,
             map = map,
             filter = filter,
