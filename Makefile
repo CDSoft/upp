@@ -28,6 +28,7 @@ all: test
 
 install:
 	install upp ${INSTALL_PATH}/
+	mkdir -p ${LIB_INSTALL_PATH}/
 	install lib/* ${LIB_INSTALL_PATH}/
 
 .PHONY: test
