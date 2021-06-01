@@ -1,3 +1,8 @@
+--[[ pretty(x)
+-- convert x to a string.
+-- If x is a table, each field is recursively converted.
+-- The main purpose of this function is to debug Lua values in a document.
+--]]
 
 local function _pretty(t, indent)
     if type(t) == "table" then

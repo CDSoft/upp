@@ -1,3 +1,7 @@
+--[[ count(name [, initial_value])
+-- returns a counter, starting from 1 or initial_value
+-- The document can define several counters, identified by their names.
+--]]
 
 local counters = {}
 
