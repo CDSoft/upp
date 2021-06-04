@@ -137,6 +137,20 @@ local function postfix(post)
     return function(s) return s..post end
 end
 
+local _atexit = {}
+
+local function atexit(chunk)
+    table.insert(_atexit, chunk)
+end
+
+local function run_atexit()
+    return function(env)
+        for i = #_atexit, 1, -1 do
+            _atexit[i]()
+        end
+    end
+end
+
 --[[----------------------------------------------------------------
 --   Command line parser
 --]]----------------------------------------------------------------
@@ -239,6 +253,7 @@ local function parse_args()
         table.insert(actions, process_file(args[1])); shift(1); need_to_process_stdin = false
     end
     if need_to_process_stdin then table.insert(actions, process_stdin()) end
+    table.insert(actions, run_atexit())
     return actions
 end
 
@@ -288,6 +303,7 @@ local function new_env()
             realpath = realpath,
             prefix = prefix,
             postfix = postfix,
+            atexit = atexit,
         },
     }
     for k, v in pairs(_G) do env_mt.__index[k] = v end
