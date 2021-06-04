@@ -68,6 +68,19 @@ $(T(42))
 
 $(t)
 
+# Additional outputs
+
+:(emit "$(build)/other_file.md" [[
+This is another generated file.
+It should be in `$(build)`.
+
+z is still $(z).
+]])
+
+:(emit "-complement.txt" [[
+This file uses the name of the parent file as prefix.
+]])
+
 # Standard library tests
 
 :(import "pretty")

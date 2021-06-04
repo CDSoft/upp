@@ -24,41 +24,80 @@ LIBS = $(wildcard lib/*)
 
 all: test
 
+####################################################################
+# Installation
+####################################################################
+
 .PHONY: install
 
 install:
-	install upp ${INSTALL_PATH}/
-	mkdir -p ${LIB_INSTALL_PATH}/
-	install lib/* ${LIB_INSTALL_PATH}/
+	install upp $(INSTALL_PATH)/
+	mkdir -p $(LIB_INSTALL_PATH)/
+	install lib/* $(LIB_INSTALL_PATH)/
+
+####################################################################
+# Tests
+####################################################################
 
 .PHONY: test
 
-test: test_upp test_unit_tests
+test: test_upp
+test: test_upp_multiple_outputs_1 test_upp_multiple_outputs_2
+test: test_unit_tests
+test:
 	# Well done
-
-test_upp: ${BUILD}/test.md tests/test_result.md
-	diff $^
-
-test_unit_tests: ${BUILD}/unit_tests.c tests/unit_tests_result.c
-	diff $^
-
-${BUILD}/test.md: upp tests/test.md tests/test_include.md tests/test_lib.lua Makefile $(LIBS)
-	@mkdir -p ${BUILD}
-	UPP_PATH=tests ./upp -p tests -p lib -e 'foo="bar"' -l test_lib.lua tests/test.md -o $@
-
-${BUILD}/unit_tests.c: upp examples/unit_tests.lua tests/unit_tests.c Makefile
-	@mkdir -p ${BUILD}
-	./upp -p examples -l unit_tests.lua tests/unit_tests.c -o $@
-	clang-format -i $@
 
 .PHONY: diff
 
-diff: diff_test diff_unit_tests
+diff: diff_test
+diff: diff_test_multiple_outputs_1 diff_test_multiple_outputs_2
+diff: diff_unit_tests
 
-diff_test: ${BUILD}/test.md tests/test_result.md
+####################################################################
+# Tests: generic upp tests + multiple output files
+####################################################################
+
+test_upp: $(BUILD)/test.md tests/test_result.md
+	diff $^
+
+test_upp_multiple_outputs_1: $(BUILD)/test-complement.txt tests/test_result-complmement.txt
+	diff $^
+
+test_upp_multiple_outputs_2: $(BUILD)/other_file.md tests/test_result_other_file.md
+	diff $^
+
+diff_test: $(BUILD)/test.md tests/test_result.md
 	diff -q $^ || meld $^
 
-diff_unit_tests: ${BUILD}/unit_tests.c tests/unit_tests_result.c
+diff_test_multiple_outputs_1: $(BUILD)/test-complement.txt tests/test_result-complmement.txt
 	diff -q $^ || meld $^
+
+diff_test_multiple_outputs_2: $(BUILD)/other_file.md tests/test_result_other_file.md
+	diff -q $^ || meld $^
+
+$(BUILD)/test.md $(BUILD)/test-complement.txt $(BUILD)/other_file.md &: upp tests/test.md tests/test_include.md tests/test_lib.lua Makefile $(LIBS)
+	@mkdir -p $(BUILD)
+	UPP_PATH=tests ./upp -p tests -p lib -e 'build="$(BUILD)"' -e 'foo="bar"' -l test_lib.lua tests/test.md -o $(word 1,$@)
+
+####################################################################
+# Tests: pluggin example (unit tests generation)
+####################################################################
+
+test_unit_tests: $(BUILD)/unit_tests.c tests/unit_tests_result.c
+	diff $^
+
+diff_unit_tests: $(BUILD)/unit_tests.c tests/unit_tests_result.c
+	diff -q $^ || meld $^
+
+$(BUILD)/unit_tests.c: upp examples/unit_tests.lua tests/unit_tests.c Makefile
+	@mkdir -p $(BUILD)
+	./upp -p examples -l unit_tests.lua tests/unit_tests.c -o $@
+	clang-format -i $@
+
+####################################################################
+# Documentation
+####################################################################
 
 .PHONY: doc
+
+# TODO

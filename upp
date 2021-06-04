@@ -151,9 +151,67 @@ local function run_atexit()
     end
 end
 
+local function file_stack(handlers)
+    local stack = {}
+    local s = {}
+    handlers = handlers or {}
+    local push_handler = handlers.push_handler or nop
+    local pop_handler = handlers.pop_handler or nop
+    function s.top()
+        if #stack > 0 then return stack[#stack] end
+    end
+    function s.push(name)
+        push_handler(name)
+        table.insert(stack, name)
+    end
+    function s.pop()
+        pop_handler(name)
+        table.remove(stack)
+    end
+    function s.with(name, f)
+        s.push(name)
+        local ret = f()
+        s.pop()
+        return ret
+    end
+    return s
+end
+
+local function keys(t)
+    local ks = {}
+    for k, v in pairs(t) do table.insert(ks, k) end
+    table.sort(ks)
+    return ks
+end
+
+local function values(t)
+    local ks = keys(t)
+    local vs = {}
+    for _, k in ipairs(ks) do table.insert(vs, t[k]) end
+    return vs
+end
+
+local function items(t)
+    local ks = keys(t)
+    local is = {}
+    for _, k in ipairs(ks) do table.insert(is, {k, t[k]}) end
+    return is
+end
+
 --[[----------------------------------------------------------------
 --   Command line parser
 --]]----------------------------------------------------------------
+
+local inputs = {}       -- {filename: true}
+local outputs = {}      -- {filename: {lines}}
+local scripts = {}      -- filename: true}
+local main_output_file = nil
+local output_stack = file_stack {
+    push_handler = function(name) outputs[name] = outputs[name] or {} end
+}
+
+local stdin_name = "-"
+local stdout_name = "-"
 
 local function clone(xs)
     return map(id, xs)
@@ -183,6 +241,7 @@ end
 local function load_script(filename)
     return function(env)
         local path = assert(env.package.searchpath(filename:gsub("%.lua$", ""), env.package.path))
+        scripts[path] = true
         assert(env.loadfile(path, "t", env))()
     end
 end
@@ -193,12 +252,17 @@ local function eval_expr(expr)
     end
 end
 
-local outputs = {}
-local output_file = nil
-
 local function set_output(output)
-    if output_file then die("multiple -o option") end
-    output_file = output
+    if output_stack.top() then die("multiple -o option") end
+    main_output_file = output
+    output_stack.push(output)
+    return nop
+end
+
+local function set_stdout()
+    if not output_stack.top() then
+        set_output(stdout_name)
+    end
     return nop
 end
 
@@ -207,13 +271,13 @@ local function add_path(path)
 end
 
 local function process(name, content, env)
-    table.insert(outputs, env.upp(content))
+    table.insert(outputs[output_stack.top()], env.upp(content))
 end
 
 local function process_stdin()
     return function(env)
         local content = io.stdin:read "a"
-        process("-", content, env)
+        process(stdin_name, content, env)
     end
 end
 
@@ -226,6 +290,7 @@ end
 
 local function process_file(filename)
     return function(env)
+        inputs[filename] = true
         process(filename, read_file(filename), env)
     end
 end
@@ -242,7 +307,7 @@ local function parse_args()
         elseif args[1] == "-e" then action = eval_expr(args[2]); shift(2)
         elseif args[1] == "-o" then action = set_output(args[2]); shift(2)
         elseif args[1] == "-p" then action = add_path(args[2]); shift(2)
-        elseif args[1] == "-" then action = process_stdin(); shift(1); need_to_process_stdin = false
+        elseif args[1] == stdin_name then action = process_stdin(); shift(1); need_to_process_stdin = false
         elseif args[1] == "--" then shift(1); break
         elseif args[1]:match "^%-" then die("Unknown option: "..args[1].."\n\n"..help)
         else action = process_file(args[1]); shift(1); need_to_process_stdin = false
@@ -253,6 +318,7 @@ local function parse_args()
         table.insert(actions, process_file(args[1])); shift(1); need_to_process_stdin = false
     end
     if need_to_process_stdin then table.insert(actions, process_stdin()) end
+    table.insert(actions, set_stdout())
     table.insert(actions, run_atexit())
     return actions
 end
@@ -304,6 +370,17 @@ local function new_env()
             prefix = prefix,
             postfix = postfix,
             atexit = atexit,
+            emit = function(name)
+                name = env.upp(name)
+                if name:match "^-" then
+                    name = output_stack.top():gsub("%.[^/]*$", "")..name
+                end
+                return function(content)
+                    output_stack.with(name, function()
+                        process(name, content, env)
+                    end)
+                end
+            end,
         },
     }
     for k, v in pairs(_G) do env_mt.__index[k] = v end
@@ -316,14 +393,20 @@ end
 local function process_args(actions)
     local env = new_env()
     for _, action in ipairs(actions) do action(env) end
-    local f = output_file and assert(io.open(output_file, "w")) or io.stdout
-    f:write(table.concat(outputs))
-    f:close()
+end
+
+local function write_outputs()
+    for name, contents in pairs(outputs) do
+        local f = (name == stdout_name) and io.stdout or assert(io.open(name, "w"))
+        f:write(table.concat(contents))
+        f:close()
+    end
 end
 
 local function main()
     local actions = parse_args()
     process_args(actions)
+    write_outputs()
 end
 
 main()

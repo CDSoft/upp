@@ -66,6 +66,12 @@ T(val=1)
 T(val=2)
 T(val=3)
 
+# Additional outputs
+
+
+
+
+
 # Standard library tests
 
 
