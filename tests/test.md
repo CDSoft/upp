@@ -81,6 +81,12 @@ z is still $(z).
 This file uses the name of the parent file as prefix.
 ]])
 
+# Targets
+
+:( sh [[
+    echo "non discoverable target" > $(build)/non_discoverable_target.txt
+]] )
+
 # Standard library tests
 
 :(import "pretty")

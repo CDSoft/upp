@@ -42,6 +42,9 @@ Environment variables:
 --   Various functions usable in macros
 --]]----------------------------------------------------------------
 
+local _env = nil
+local function _upp(s) return _env and _env.upp(s) or s end
+
 local function id(x)
     return x
 end
@@ -85,6 +88,10 @@ local function range(a, b, step)
     return r
 end
 
+local function clone(xs)
+    return map(id, xs)
+end
+
 local function concat(...)
     local t = {}
     for _, ti in ipairs({...}) do
@@ -101,17 +108,40 @@ local function merge(...)
     return t
 end
 
+local function sort(t)
+    local s = clone(t)
+    table.sort(s)
+    return s
+end
+
+local function uniq(t)
+    local u = {}
+    local seen = {}
+    for _, x in ipairs(t) do
+        if not seen[x] then
+            table.insert(u, x)
+            seen[x] = true
+        end
+    end
+    return u
+end
+
 local function dirname(path)
-    return (path:gsub("/[^/]*$", ""))
+    return (_upp(path):gsub("/[^/]*$", ""))
 end
 
 local function basename(path)
-    return (path:gsub(".*/", ""))
+    return (_upp(path):gsub(".*/", ""))
+end
+
+local function noext(path)
+    return (_upp(path):gsub("%.[^/]*$", ""))
 end
 
 local function join(...)
     local ps = {}
     for _, p in ipairs({...}) do
+        p = _upp(p)
         if p:match "^/" then
             ps = {p}
         else
@@ -122,19 +152,26 @@ local function join(...)
 end
 
 local function realpath(name)
-    local p = io.popen("realpath -q "..name)
+    local p = io.popen("realpath -q ".._upp(name))
     local path = p:read("a")
     if p:close() then
         return path:gsub("[ \n]*$", "")
     end
 end
 
+local function sh(command)
+    local p = io.popen(_upp(command))
+    local out = p:read("a")
+    assert(p:close())
+    return out
+end
+
 local function prefix(pre)
-    return function(s) return pre..s end
+    return function(s) return _upp(pre..s) end
 end
 
 local function postfix(post)
-    return function(s) return s..post end
+    return function(s) return _upp(s..post) end
 end
 
 local _atexit = {}
@@ -204,18 +241,17 @@ end
 
 local inputs = {}       -- {filename: true}
 local outputs = {}      -- {filename: {lines}}
-local scripts = {}      -- filename: true}
+local scripts = {}      -- {filename: true}
+local targets = {}      -- {filename: true} user defined targets (-MT option)
 local main_output_file = nil
+local dep_file = nil
+local dep_file_enabled = false
 local output_stack = file_stack {
     push_handler = function(name) outputs[name] = outputs[name] or {} end
 }
 
 local stdin_name = "-"
 local stdout_name = "-"
-
-local function clone(xs)
-    return map(id, xs)
-end
 
 local function die(msg, errcode)
     io.stderr:write("upp: "..msg.."\n")
@@ -270,6 +306,23 @@ local function add_path(path)
     return function(env) add_package_path(env, path) end
 end
 
+local function add_target(name)
+    targets[name] = true
+    return nop
+end
+
+local function set_dep_file(name)
+    if dep_file then die("multiple -MF option") end
+    dep_file = name
+    dep_file_enabled = true
+    return nop
+end
+
+local function enable_dep_file()
+    dep_file_enabled = true
+    return nop
+end
+
 local function process(name, content, env)
     table.insert(outputs[output_stack.top()], env.upp(content))
 end
@@ -307,6 +360,10 @@ local function parse_args()
         elseif args[1] == "-e" then action = eval_expr(args[2]); shift(2)
         elseif args[1] == "-o" then action = set_output(args[2]); shift(2)
         elseif args[1] == "-p" then action = add_path(args[2]); shift(2)
+        elseif args[1] == "-MT" then action = add_target(args[2]); shift(2)
+        elseif args[1] == "-MF" then action = set_dep_file(args[2]); shift(2)
+        elseif args[1] == "-M" then action = enable_dep_file(); shift(2)
+        elseif args[1] == "-MD" then action = enable_dep_file(); shift(2)
         elseif args[1] == stdin_name then action = process_stdin(); shift(1); need_to_process_stdin = false
         elseif args[1] == "--" then shift(1); break
         elseif args[1]:match "^%-" then die("Unknown option: "..args[1].."\n\n"..help)
@@ -367,13 +424,14 @@ local function new_env()
             basename = basename,
             join = join,
             realpath = realpath,
+            sh = sh,
             prefix = prefix,
             postfix = postfix,
             atexit = atexit,
             emit = function(name)
                 name = env.upp(name)
                 if name:match "^-" then
-                    name = output_stack.top():gsub("%.[^/]*$", "")..name
+                    name = noext(output_stack.top())..name
                 end
                 return function(content)
                     output_stack.with(name, function()
@@ -392,6 +450,7 @@ end
 
 local function process_args(actions)
     local env = new_env()
+    _env = env
     for _, action in ipairs(actions) do action(env) end
 end
 
@@ -403,9 +462,24 @@ local function write_outputs()
     end
 end
 
+local function write_dep_file()
+    if dep_file_enabled then
+        local name = dep_file or (main_output_file and noext(main_output_file)..".d")
+        if not name then die("The dependency file name is unknown, use -MF or -o") end
+        local function mklist(...)
+            return table.concat(sort(uniq(concat(table.unpack(map(keys, {...}))))), " ")
+        end
+        local deps = mklist(targets, outputs).." &: "..mklist(inputs, scripts)
+        local f = assert(io.open(name, "w"))
+        f:write(deps.."\n")
+        f:close()
+    end
+end
+
 local function main()
     local actions = parse_args()
     process_args(actions)
+    write_dep_file()
     write_outputs()
 end
 
