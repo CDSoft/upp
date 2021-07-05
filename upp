@@ -243,6 +243,7 @@ local inputs = {}       -- {filename: true}
 local outputs = {}      -- {filename: {lines}}
 local scripts = {}      -- {filename: true}
 local targets = {}      -- {filename: true} user defined targets (-MT option)
+local input_files = {sep=", "}
 local main_output_file = nil
 local dep_file = nil
 local dep_file_enabled = false
@@ -327,7 +328,12 @@ local function process(name, content, env)
     table.insert(outputs[output_stack.top()], env.upp(content))
 end
 
+local function add_input_file(filename)
+    table.insert(input_files, filename)
+end
+
 local function process_stdin()
+    add_input_file("-")
     return function(env)
         local content = io.stdin:read "a"
         process(stdin_name, content, env)
@@ -342,6 +348,7 @@ local function read_file(filename)
 end
 
 local function process_file(filename)
+    add_input_file(filename)
     return function(env)
         inputs[filename] = true
         process(filename, read_file(filename), env)
@@ -411,6 +418,8 @@ local function new_env()
                     end
                 end))
             end,
+            input_files = input_files,
+            output_file = main_output_file,
             die = die,
             import = function(name) load_script(name)(env) end,
             include = function(filename) return read_file(filename) end,

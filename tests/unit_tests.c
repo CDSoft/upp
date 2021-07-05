@@ -1,3 +1,8 @@
+/** \file $(input_files)
+ *
+ * Generated file: $(output_file)
+ */
+
 #include <assert.h>
 
 :(  local n = 8

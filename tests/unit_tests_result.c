@@ -1,3 +1,8 @@
+/** \file tests/unit_tests.c
+ *
+ * Generated file: .build/unit_tests.c
+ */
+
 #include <assert.h>
 
 int main(void)

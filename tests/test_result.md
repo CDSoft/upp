@@ -32,6 +32,10 @@ lang = fr => Ce texte en français doit apparaitre !
 
 
 
+input files: tests/test.md, tests/test2.md
+
+output file: .build/test.md
+
 # Blocks (array items)
 
 
@@ -132,3 +136,6 @@ Count A's        : 1 2 3
 Count B's from 42: 42 43 44
 More A's         : 4 5 6
 More B's         : 45 46 47
+# Additional tests
+
+A second file just to make sure `input_files` can contain more than one filename.
