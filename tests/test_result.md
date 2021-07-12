@@ -32,7 +32,7 @@ lang = fr => Ce texte en français doit apparaitre !
 
 
 
-input files: tests/test.md, tests/test2.md
+input files: tests/test.md tests/test2.md
 
 output file: .build/test.md
 

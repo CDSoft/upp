@@ -243,7 +243,7 @@ local inputs = {}       -- {filename: true}
 local outputs = {}      -- {filename: {lines}}
 local scripts = {}      -- {filename: true}
 local targets = {}      -- {filename: true} user defined targets (-MT option)
-local input_files = {sep=", "}
+local input_files = {sep=" "}   -- list of input files separated by spaces to be usable in command lines
 local main_output_file = nil
 local dep_file = nil
 local dep_file_enabled = false
