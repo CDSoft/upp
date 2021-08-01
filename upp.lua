@@ -181,7 +181,7 @@ local function atexit(chunk)
 end
 
 local function run_atexit()
-    return function(env)
+    return function(_)
         for i = #_atexit, 1, -1 do
             _atexit[i]()
         end
@@ -202,7 +202,7 @@ local function file_stack(handlers)
         table.insert(stack, name)
     end
     function s.pop()
-        pop_handler(name)
+        pop_handler()
         table.remove(stack)
     end
     function s.with(name, f)
@@ -216,7 +216,7 @@ end
 
 local function keys(t)
     local ks = {}
-    for k, v in pairs(t) do table.insert(ks, k) end
+    for k, _ in pairs(t) do table.insert(ks, k) end
     table.sort(ks)
     return ks
 end
@@ -324,7 +324,7 @@ local function enable_dep_file()
     return nop
 end
 
-local function process(name, content, env)
+local function process(content, env)
     table.insert(outputs[output_stack.top()], env.upp(content))
 end
 
@@ -336,7 +336,7 @@ local function process_stdin()
     add_input_file("-")
     return function(env)
         local content = io.stdin:read "a"
-        process(stdin_name, content, env)
+        process(content, env)
     end
 end
 
@@ -351,7 +351,7 @@ local function process_file(filename)
     add_input_file(filename)
     return function(env)
         inputs[filename] = true
-        process(filename, read_file(filename), env)
+        process(read_file(filename), env)
     end
 end
 
@@ -359,7 +359,7 @@ local function parse_args()
     local args = clone(arg)
     local need_to_process_stdin = true
     local actions = {}
-    local function shift(n) for i = 1,n do table.remove(args, 1) end end
+    local function shift(n) for _ = 1,n do table.remove(args, 1) end end
     while #args > 0 do
         local action = nil
         if args[1] == "-h" then print(help); os.exit(0)
@@ -444,7 +444,8 @@ local function new_env()
                 end
                 return function(content)
                     output_stack.with(name, function()
-                        process(name, content, env)
+                        add_input_file(name)
+                        process(content, env)
                     end)
                 end
             end,

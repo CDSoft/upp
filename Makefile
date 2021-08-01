@@ -24,6 +24,9 @@ LIBS = $(wildcard lib/*)
 
 all: test
 
+clean:
+	rm -rf $(BUILD)
+
 ####################################################################
 # Installation
 ####################################################################
@@ -31,7 +34,7 @@ all: test
 .PHONY: install
 
 install:
-	install upp $(INSTALL_PATH)/
+	install -T upp.lua $(INSTALL_PATH)/upp
 	mkdir -p $(LIB_INSTALL_PATH)/
 	install lib/* $(LIB_INSTALL_PATH)/
 
@@ -87,9 +90,9 @@ diff_test_multiple_outputs_1: $(BUILD)/test-complement.txt tests/test_result-com
 diff_test_multiple_outputs_2: $(BUILD)/other_file.md tests/test_result_other_file.md
 	diff -q $^ || meld $^
 
-$(BUILD)/test.md $(BUILD)/test.d $(BUILD)/test-complement.txt $(BUILD)/other_file.md &: upp tests/test.md tests/test2.md tests/test_include.md tests/test_lib.lua Makefile $(LIBS)
+$(BUILD)/test.md $(BUILD)/test.d $(BUILD)/test-complement.txt $(BUILD)/other_file.md &: upp.lua tests/test.md tests/test2.md tests/test_include.md tests/test_lib.lua Makefile $(LIBS)
 	@mkdir -p $(BUILD)
-	UPP_PATH=tests ./upp -p tests -p lib -e 'build="$(BUILD)"' -e 'foo="bar"' -l test_lib.lua tests/test.md tests/test2.md -o $(word 1,$@) -MT fictive_target -MT $(BUILD)/non_discoverable_target.txt -MD
+	UPP_PATH=tests ./upp.lua -p tests -p lib -e 'build="$(BUILD)"' -e 'foo="bar"' -l test_lib.lua tests/test.md tests/test2.md -o $(word 1,$@) -MT fictive_target -MT $(BUILD)/non_discoverable_target.txt -MD
 
 ####################################################################
 # Tests: pluggin example (unit tests generation)
@@ -101,9 +104,9 @@ test_unit_tests: $(BUILD)/unit_tests.c tests/unit_tests_result.c
 diff_unit_tests: $(BUILD)/unit_tests.c tests/unit_tests_result.c
 	diff -q $^ || meld $^
 
-$(BUILD)/unit_tests.c: upp examples/unit_tests.lua tests/unit_tests.c Makefile
+$(BUILD)/unit_tests.c: upp.lua examples/unit_tests.lua tests/unit_tests.c Makefile
 	@mkdir -p $(BUILD)
-	./upp -p examples -l unit_tests.lua tests/unit_tests.c -o $@
+	./upp.lua -p examples -l unit_tests.lua tests/unit_tests.c -o $@
 	clang-format -i $@
 
 ####################################################################
