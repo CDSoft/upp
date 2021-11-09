@@ -57,6 +57,9 @@ options:
 - `-e expression`: execute a Lua expression
 - `-o file`: redirect the output to `file`
 - `-p path`: add a path to `package.path`
+- `-MT name`: add `name` to the target list (see `-MD`)
+- `-MF name`: set the dependency file name
+- `-MD`: generate a dependency file
 
 # Documentation
 

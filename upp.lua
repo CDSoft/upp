@@ -32,6 +32,9 @@ options:
     -e expression   execute a Lua expression
     -p path         add a path to package.path
     -o file         redirect the output to 'file'
+    -MT name        add `name` to the target list (see `-MD`)
+    -MF name        set the dependency file name
+    -MD             generate a dependency file
 
 Environment variables:
 
@@ -333,7 +336,7 @@ local function add_input_file(filename)
 end
 
 local function process_stdin()
-    add_input_file("-")
+    add_input_file(stdin_name)
     return function(env)
         local content = io.stdin:read "a"
         process(content, env)
@@ -344,13 +347,13 @@ local function read_file(filename)
     local f = assert(io.open(filename))
     local content = f:read "a"
     f:close()
+    inputs[filename] = true
     return content
 end
 
 local function process_file(filename)
     add_input_file(filename)
     return function(env)
-        inputs[filename] = true
         process(read_file(filename), env)
     end
 end
@@ -369,8 +372,8 @@ local function parse_args()
         elseif args[1] == "-p" then action = add_path(args[2]); shift(2)
         elseif args[1] == "-MT" then action = add_target(args[2]); shift(2)
         elseif args[1] == "-MF" then action = set_dep_file(args[2]); shift(2)
-        elseif args[1] == "-M" then action = enable_dep_file(); shift(2)
-        elseif args[1] == "-MD" then action = enable_dep_file(); shift(2)
+        elseif args[1] == "-M" then action = enable_dep_file(); shift(1)
+        elseif args[1] == "-MD" then action = enable_dep_file(); shift(1)
         elseif args[1] == stdin_name then action = process_stdin(); shift(1); need_to_process_stdin = false
         elseif args[1] == "--" then shift(1); break
         elseif args[1]:match "^%-" then die("Unknown option: "..args[1].."\n\n"..help)
@@ -477,9 +480,11 @@ local function write_dep_file()
         local name = dep_file or (main_output_file and noext(main_output_file)..".d")
         if not name then die("The dependency file name is unknown, use -MF or -o") end
         local function mklist(...)
-            return table.concat(sort(uniq(concat(table.unpack(map(keys, {...}))))), " ")
+            return table.concat(
+                filter(function(p) return p ~= stdin_name end,
+                    sort(uniq(concat(table.unpack(map(keys, {...})))))), " ")
         end
-        local deps = mklist(targets, outputs).." &: "..mklist(inputs, scripts)
+        local deps = mklist(targets, outputs).." : "..mklist(inputs, scripts)
         local f = assert(io.open(name, "w"))
         f:write(deps.."\n")
         f:close()
