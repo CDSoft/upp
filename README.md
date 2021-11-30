@@ -26,7 +26,7 @@ Anybody can contribute on [GitHub] to:
 
 ## Prerequisites
 
-- [Lua]
+- [Lua] (version 5.4.3)
 
 ## Installation from source
 
