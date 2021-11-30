@@ -42,6 +42,16 @@ Environment variables:
 ]]
 
 --[[----------------------------------------------------------------
+--   OS detection
+--]]----------------------------------------------------------------
+
+local dir_sep
+do
+    local config = package.config:gmatch("[^\n]*")
+    dir_sep = config()
+end
+
+--[[----------------------------------------------------------------
 --   Various functions usable in macros
 --]]----------------------------------------------------------------
 
@@ -129,37 +139,33 @@ local function uniq(t)
     return u
 end
 
+local base_pattern = dir_sep.."[^"..dir_sep.."]*$"
+local dir_pattern = ".*"..dir_sep
+local ext_pattern = "%.[^"..dir_sep.."]*$"
+
 local function dirname(path)
-    return (_upp(path):gsub("/[^/]*$", ""))
+    return (_upp(path):gsub(base_pattern, ""))
 end
 
 local function basename(path)
-    return (_upp(path):gsub(".*/", ""))
+    return (_upp(path):gsub(dir_pattern, ""))
 end
 
 local function noext(path)
-    return (_upp(path):gsub("%.[^/]*$", ""))
+    return (_upp(path):gsub(ext_pattern, ""))
 end
 
 local function join(...)
     local ps = {}
     for _, p in ipairs({...}) do
         p = _upp(p)
-        if p:match "^/" then
+        if p:match("^"..dir_sep) then
             ps = {p}
         else
             table.insert(ps, p)
         end
     end
-    return table.concat(ps, "/")
-end
-
-local function realpath(name)
-    local p = io.popen("realpath -q ".._upp(name))
-    local path = p:read("a")
-    if p:close() then
-        return path:gsub("[ \n]*$", "")
-    end
+    return table.concat(ps, dir_sep)
 end
 
 local function sh(command)
@@ -435,7 +441,6 @@ local function new_env()
             dirname = dirname,
             basename = basename,
             join = join,
-            realpath = realpath,
             sh = sh,
             prefix = prefix,
             postfix = postfix,
@@ -456,7 +461,7 @@ local function new_env()
     }
     for k, v in pairs(_G) do env_mt.__index[k] = v end
     env = setmetatable(env, env_mt)
-    update_path(env, realpath(dirname(arg[0]).."/../lib/upp"))
+    update_path(env, join(dirname(dirname(arg[0])), "lib", "upp"))
     update_path(env, os.getenv "UPP_PATH")
     return env
 end
