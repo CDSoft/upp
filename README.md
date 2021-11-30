@@ -36,6 +36,16 @@ $ cd upp
 $ make install      # install upp in ~/.local/bin
 ```
 
+## Precompiled binaries
+
+It is recommended to install upp from the sources.
+
+In case you need precompiled binaries (`upp` and Lua interpretor included),
+the latest binaries are available here:
+
+- [Linux UPP executable](http://cdelord.fr/upp/upp)
+- [Windows UPP executable](http://cdelord.fr/upp/upp.exe)
+
 ## Test
 
 ``` sh
