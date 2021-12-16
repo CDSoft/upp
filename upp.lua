@@ -179,7 +179,7 @@ local function prefix(pre)
     return function(s) return _upp(pre..s) end
 end
 
-local function postfix(post)
+local function suffix(post)
     return function(s) return _upp(s..post) end
 end
 
@@ -443,7 +443,7 @@ local function new_env()
             join = join,
             sh = sh,
             prefix = prefix,
-            postfix = postfix,
+            suffix = suffix,
             atexit = atexit,
             emit = function(name)
                 name = env.upp(name)

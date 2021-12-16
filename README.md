@@ -110,6 +110,16 @@ The user's home is $(os.getenv "HOME").
 * `map(f, xs)`: return `{f(x) | x ∈ xs}`.
 * `filter(p, xs)`: return `{x | x ∈ xs ∧ p(x)}`.
 * `range(a, b, [step])`: return `{a, a+step, ..., b}`.
+* `concat(l1, l2, ... ln)`: concatenate the lists `l1`, `l2`, ... `ln` into a new single list.
+* `merge(t1, t2, ... tn)`: merge the fields of the tables `t1`, `t2`, ... `tn` into a new single table.
+* `dirname(path)`: return the directory part of `path`.
+* `basename(path)`: return the filename part of `path`.
+* `join(p1, p2, ... pn)`: build a path (`p1/p2/.../pn`) from the path components `p1`, `p2`, ... `pn`.
+* `sh(cmd)`: run the shell command `cmd` and return its output (`stdout`).
+* `prefix(p)`: build a function that adds the prefix `p` to a string.
+* `suffix(p)`: build a function that adds the suffix `p` to a string.
+* `atexit(f)`: register the function `f`. `f` will be executed before writing the final document.
+* `emit(filename)(content)`: write `content` to a new file named `filename`.
 
 ## Example
 

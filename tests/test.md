@@ -128,10 +128,10 @@ join a/b c/d e/f = $(join("a/b", "c/d", "e/f"))
 join a/b /c/d e/f = $(join("a/b", "/c/d", "e/f"))
 join a/b c/d /e/f = $(join("a/b", "c/d", "/e/f"))
 
-## prefix/postfix
+## prefix/suffix
 
 add "/" to all items: $(map(prefix"/", {"a", "b", "c"}))
-add "/" to all items: $(map(postfix"/", {"a", "b", "c"}))
+add "/" to all items: $(map(suffix"/", {"a", "b", "c"}))
 
 ## Counters
 

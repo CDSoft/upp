@@ -123,7 +123,7 @@ join a/b c/d e/f = a/b/c/d/e/f
 join a/b /c/d e/f = /c/d/e/f
 join a/b c/d /e/f = /e/f
 
-## prefix/postfix
+## prefix/suffix
 
 add "/" to all items: /a, /b, /c
 add "/" to all items: a/, b/, c/
