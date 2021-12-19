@@ -1,6 +1,6 @@
-/** \file $(input_files)
+/** \file $(input_files())
  *
- * Generated file: $(output_file)
+ * Generated file: $(output_file())
  */
 
 #include <assert.h>
