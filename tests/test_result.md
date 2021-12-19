@@ -138,4 +138,4 @@ More A's         : 4 5 6
 More B's         : 45 46 47
 # Additional tests
 
-A second file just to make sure `input_files` can contain more than one filename.
+A second file just to make sure `input_files()` can contain more than one filename.

@@ -34,9 +34,9 @@ $(when(lang=="en") [[
 lang = $(lang) => You should not see this text in english!
 ]])
 
-input files: $(input_files)
+input files: $(input_files())
 
-output file: $(output_file)
+output file: $(output_file())
 
 # Blocks (array items)
 

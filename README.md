@@ -100,8 +100,8 @@ The user's home is $(os.getenv "HOME").
 ## Builtin macros
 
 * All Lua functions and modules are available as `upp` macros (see <https://www.lua.org/manual/>)
-* `input_files`: list of the input files given on the command line.
-* `output_file`: output file given on the command line.
+* `input_files()`: list of the input files given on the command line.
+* `output_file()`: output file given on the command line.
 * `upp(Lua_expression)`: evaluate a Lua expression and outputs its result.
 * `die(msg, errcode)`: print `msg` and exit with the error code `errcode`.
 * `import(script)`: evaluate a Lua script (e.g. to define new macros).

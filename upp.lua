@@ -55,9 +55,6 @@ end
 --   Various functions usable in macros
 --]]----------------------------------------------------------------
 
-local _env = nil
-local function _upp(s) return _env and _env.upp(s) or s end
-
 local function id(x)
     return x
 end
@@ -68,19 +65,19 @@ end
 
 local nop = const(nil)
 
-local function map(f, xs)
+function map(f, xs)
     local ys = {}
     for _, x in ipairs(xs) do table.insert(ys, f(x)) end
     return ys
 end
 
-local function filter(p, xs)
+function filter(p, xs)
     local ys = {}
     for _, x in ipairs(xs) do if p(x) then table.insert(ys, x) end end
     return ys
 end
 
-local function range(a, b, step)
+function range(a, b, step)
     step = step or (a < b and 1) or (a > b and -1)
     local r = {}
     if a < b then
@@ -105,7 +102,7 @@ local function clone(xs)
     return map(id, xs)
 end
 
-local function concat(...)
+function concat(...)
     local t = {}
     for _, ti in ipairs({...}) do
         for _, v in ipairs(ti) do table.insert(t, v) end
@@ -113,7 +110,7 @@ local function concat(...)
     return t
 end
 
-local function merge(...)
+function merge(...)
     local t = {}
     for _, ti in ipairs({...}) do
         for k, v in pairs(ti) do t[k] = v end
@@ -143,22 +140,22 @@ local base_pattern = dir_sep.."[^"..dir_sep.."]*$"
 local dir_pattern = ".*"..dir_sep
 local ext_pattern = "%.[^"..dir_sep.."]*$"
 
-local function dirname(path)
-    return (_upp(path):gsub(base_pattern, ""))
+function dirname(path)
+    return (upp(path):gsub(base_pattern, ""))
 end
 
-local function basename(path)
-    return (_upp(path):gsub(dir_pattern, ""))
+function basename(path)
+    return (upp(path):gsub(dir_pattern, ""))
 end
 
 local function noext(path)
-    return (_upp(path):gsub(ext_pattern, ""))
+    return (upp(path):gsub(ext_pattern, ""))
 end
 
-local function join(...)
+function join(...)
     local ps = {}
     for _, p in ipairs({...}) do
-        p = _upp(p)
+        p = upp(p)
         if p:match("^"..dir_sep) then
             ps = {p}
         else
@@ -168,24 +165,24 @@ local function join(...)
     return table.concat(ps, dir_sep)
 end
 
-local function sh(command)
-    local p = io.popen(_upp(command))
+function sh(command)
+    local p = io.popen(upp(command))
     local out = p:read("a")
     assert(p:close())
     return out
 end
 
-local function prefix(pre)
-    return function(s) return _upp(pre..s) end
+function prefix(pre)
+    return function(s) return upp(pre..s) end
 end
 
-local function suffix(post)
-    return function(s) return _upp(s..post) end
+function suffix(post)
+    return function(s) return upp(s..post) end
 end
 
 local _atexit = {}
 
-local function atexit(chunk)
+function atexit(chunk)
     table.insert(_atexit, chunk)
 end
 
@@ -252,7 +249,7 @@ local inputs = {}       -- {filename: true}
 local outputs = {}      -- {filename: {lines}}
 local scripts = {}      -- {filename: true}
 local targets = {}      -- {filename: true} user defined targets (-MT option)
-local input_files = {sep=" "}   -- list of input files separated by spaces to be usable in command lines
+local known_input_files = {sep=" "}   -- list of input files separated by spaces to be usable in command lines
 local main_output_file = nil
 local dep_file = nil
 local dep_file_enabled = false
@@ -263,38 +260,38 @@ local output_stack = file_stack {
 local stdin_name = "-"
 local stdout_name = "-"
 
-local function die(msg, errcode)
+function die(msg, errcode)
     io.stderr:write("upp: "..msg.."\n")
     os.exit(errcode or 1)
 end
 
-local function add_package_path(env, path)
-    local config = env.package.config:gmatch("[^\n]*")
+local function add_package_path(path)
+    local config = package.config:gmatch("[^\n]*")
     local dir_sep = config()
     local template_sep = config()
     local template = config()
     local new_path = path..dir_sep..template..".lua"
-    env.package.path = new_path .. template_sep .. env.package.path
+    package.path = new_path .. template_sep .. package.path
 end
 
-local function update_path(env, paths)
+local function update_path(paths)
     if not paths then return end
     for path in paths:gmatch "[^:]*" do
-        add_package_path(env, path)
+        add_package_path(path)
     end
 end
 
 local function load_script(filename)
-    return function(env)
-        local path = assert(env.package.searchpath(filename:gsub("%.lua$", ""), env.package.path))
+    return function()
+        local path = assert(package.searchpath(filename:gsub("%.lua$", ""), package.path))
         scripts[path] = true
-        assert(env.loadfile(path, "t", env))()
+        assert(loadfile(path, "t"))()
     end
 end
 
 local function eval_expr(expr)
-    return function(env)
-        assert(env.load(expr, expr, "t", env))()
+    return function()
+        assert(load(expr, expr, "t"))()
     end
 end
 
@@ -313,7 +310,7 @@ local function set_stdout()
 end
 
 local function add_path(path)
-    return function(env) add_package_path(env, path) end
+    return function() add_package_path(path) end
 end
 
 local function add_target(name)
@@ -333,19 +330,19 @@ local function enable_dep_file()
     return nop
 end
 
-local function process(content, env)
-    table.insert(outputs[output_stack.top()], env.upp(content))
+local function process(content)
+    table.insert(outputs[output_stack.top()], upp(content))
 end
 
 local function add_input_file(filename)
-    table.insert(input_files, filename)
+    table.insert(known_input_files, filename)
 end
 
 local function process_stdin()
     add_input_file(stdin_name)
-    return function(env)
+    return function()
         local content = io.stdin:read "a"
-        process(content, env)
+        process(content)
     end
 end
 
@@ -359,8 +356,8 @@ end
 
 local function process_file(filename)
     add_input_file(filename)
-    return function(env)
-        process(read_file(filename), env)
+    return function()
+        process(read_file(filename))
     end
 end
 
@@ -400,76 +397,61 @@ end
 --   Preprocessor
 --]]----------------------------------------------------------------
 
-local function new_env()
-    local env = {}
-    local env_mt = {
-        __index = {
-            upp = function(content)
-                local function format_value(x)
-                    local x_mt = getmetatable(x)
-                    if x_mt and x_mt.__tostring then return env.tostring(x) end
-                    if type(x) == "table" then
-                        -- each item of an array is a separate block of text
-                        return table.concat(map(env.tostring, x), x.sep or env.BLOCK_SEP or "\n")
-                    end
-                    return env.tostring(x)
-                end
-                return (content:gsub("([$:])(%b())", function(t, x)
-                    if t == "$" then -- x is an expression
-                        local y = (assert(env.load("return "..x:sub(2, -2), x, "t", env)))()
-                        -- if the expression can be evaluated, process it
-                        return env.upp(format_value(y))
-                    elseif t == ":" then -- x is a chunk
-                        local y = (assert(env.load(x:sub(2, -2), x, "t", env)))()
-                        -- if the chunk returns a value, process it
-                        -- otherwise leave it blank
-                        return y ~= nil and env.upp(format_value(y)) or ""
-                    end
-                end))
-            end,
-            input_files = input_files,
-            output_file = main_output_file,
-            die = die,
-            import = function(name) load_script(name)(env) end,
-            include = function(filename) return read_file(filename) end,
-            when = function(cond) return cond and id or const "" end,
-            map = map,
-            filter = filter,
-            range = range,
-            concat = concat,
-            merge = merge,
-            dirname = dirname,
-            basename = basename,
-            join = join,
-            sh = sh,
-            prefix = prefix,
-            suffix = suffix,
-            atexit = atexit,
-            emit = function(name)
-                name = env.upp(name)
-                if name:match "^-" then
-                    name = noext(output_stack.top())..name
-                end
-                return function(content)
-                    output_stack.with(name, function()
-                        add_input_file(name)
-                        process(content, env)
-                    end)
-                end
-            end,
-        },
-    }
-    for k, v in pairs(_G) do env_mt.__index[k] = v end
-    env = setmetatable(env, env_mt)
-    update_path(env, join(dirname(dirname(arg[0])), "lib", "upp"))
-    update_path(env, os.getenv "UPP_PATH")
-    return env
+function upp(content)
+    local function format_value(x)
+        local x_mt = getmetatable(x)
+        if x_mt and x_mt.__tostring then return tostring(x) end
+        if type(x) == "table" then
+            -- each item of an array is a separate block of text
+            return table.concat(map(tostring, x), x.sep or BLOCK_SEP or "\n")
+        end
+        return tostring(x)
+    end
+    return (content:gsub("([$:])(%b())", function(t, x)
+        if t == "$" then -- x is an expression
+            local y = (assert(load("return "..x:sub(2, -2), x, "t")))()
+            -- if the expression can be evaluated, process it
+            return upp(format_value(y))
+        elseif t == ":" then -- x is a chunk
+            local y = (assert(load(x:sub(2, -2), x, "t")))()
+            -- if the chunk returns a value, process it
+            -- otherwise leave it blank
+            return y ~= nil and upp(format_value(y)) or ""
+        end
+    end))
+end
+
+function input_files() return known_input_files end
+
+function output_file() return main_output_file end
+
+function import(name) load_script(name)() end
+
+function include(filename) return read_file(filename) end
+
+function when(cond) return cond and id or const "" end
+
+function emit(name)
+    name = upp(name)
+    if name:match "^-" then
+        name = noext(output_stack.top())..name
+    end
+    return function(content)
+        output_stack.with(name, function()
+            add_input_file(name)
+            process(content)
+        end)
+    end
+end
+
+local function populate_env()
+    update_path(join(dirname(dirname(arg[0])), "lib", "upp"))
+    update_path(os.getenv "UPP_PATH")
 end
 
 local function process_args(actions)
-    local env = new_env()
-    _env = env
-    for _, action in ipairs(actions) do action(env) end
+    populate_env()
+    for _, action in ipairs(actions) do action() end
 end
 
 local function write_outputs()
