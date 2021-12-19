@@ -247,7 +247,6 @@ end
 
 local inputs = {}       -- {filename: true}
 local outputs = {}      -- {filename: {lines}}
-local scripts = {}      -- {filename: true}
 local targets = {}      -- {filename: true} user defined targets (-MT option)
 local known_input_files = {sep=" "}   -- list of input files separated by spaces to be usable in command lines
 local main_output_file = nil
@@ -284,7 +283,6 @@ end
 local function load_script(filename)
     return function()
         local path = assert(package.searchpath(filename:gsub("%.lua$", ""), package.path))
-        scripts[path] = true
         assert(loadfile(path, "t"))()
     end
 end
@@ -425,8 +423,6 @@ function input_files() return known_input_files end
 
 function output_file() return main_output_file end
 
-function import(name) load_script(name)() end
-
 function include(filename) return read_file(filename) end
 
 function when(cond) return cond and id or const "" end
@@ -470,6 +466,11 @@ local function write_dep_file()
             return table.concat(
                 filter(function(p) return p ~= stdin_name end,
                     sort(uniq(concat(table.unpack(map(keys, {...})))))), " ")
+        end
+        local scripts = {}
+        for modname, _ in pairs(package.loaded) do
+            local path = package.searchpath(modname, package.path)
+            if path then scripts[path] = true end
         end
         local deps = mklist(targets, outputs).." : "..mklist(inputs, scripts)
         local f = assert(io.open(name, "w"))

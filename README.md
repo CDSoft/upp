@@ -99,12 +99,13 @@ The user's home is $(os.getenv "HOME").
 
 ## Builtin macros
 
-* All Lua functions and modules are available as `upp` macros (see <https://www.lua.org/manual/>)
+* All Lua functions and modules are available as `upp` macros (see <https://www.lua.org/manual/>).
+  E.g.:
+    * `require(module)`: import a Lua script (e.g. to define new macros, variables, ...).
 * `input_files()`: list of the input files given on the command line.
 * `output_file()`: output file given on the command line.
 * `upp(Lua_expression)`: evaluate a Lua expression and outputs its result.
 * `die(msg, errcode)`: print `msg` and exit with the error code `errcode`.
-* `import(script)`: evaluate a Lua script (e.g. to define new macros).
 * `include(filename)`: include a file in the currently preprocessed file.
 * `when(condition)(text)`: process `text` if `condition` is true.
 * `map(f, xs)`: return `{f(x) | x ∈ xs}`.
@@ -124,7 +125,7 @@ The user's home is $(os.getenv "HOME").
 ## Example
 
 ```
-Import a Lua script: :(import "script_name")
+Import a Lua script: :(require "module_name")
 Embed a Lua script: :( Lua script )
 Evaluate a Lua expression: $( 1 + lua_function(lua_variable) )
 Include another document: $(include "other_document_name")

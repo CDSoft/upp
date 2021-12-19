@@ -11,7 +11,7 @@
 - undefined is not defined: undefined = $(undefined)
 
 foofoo can be undefined: :(foofoo = nil)foofoo = $(foofoo)
-and redefined by reloading test_lib.lua: :(import "test_lib.lua")foofoo = $(foofoo)
+and redefined by reloading test_lib.lua: :(require "test_lib")foofoo = $(foofoo)
 
 $(include "tests/test_include.md")
 
@@ -93,7 +93,7 @@ This file uses the name of the parent file as prefix.
 
 # Standard library tests
 
-:(import "pretty")
+:(require "pretty")
 :(BLOCK_SEP = ", ")
 
 ## range:
@@ -135,7 +135,7 @@ add "/" to all items: $(map(suffix"/", {"a", "b", "c"}))
 
 ## Counters
 
-:(import "counter")
+:(require "counter")
 
 Count A's        : $(count "A") $(count "A") $(count "A")
 Count B's from 42: $(count("B", 42)) $(count "B") $(count "B")
