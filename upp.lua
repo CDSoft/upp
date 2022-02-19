@@ -395,6 +395,8 @@ end
 --   Preprocessor
 --]]----------------------------------------------------------------
 
+local upp_enabled = true
+
 function upp(content)
     local function format_value(x)
         local x_mt = getmetatable(x)
@@ -405,16 +407,19 @@ function upp(content)
         end
         return tostring(x)
     end
-    return (content:gsub("([$:])(%b())", function(t, x)
-        if t == "$" then -- x is an expression
+    return (content:gsub("([$:?])(%b())", function(t, x)
+        if t == "$" and upp_enabled then -- x is an expression
             local y = (assert(load("return "..x:sub(2, -2), x, "t")))()
             -- if the expression can be evaluated, process it
             return upp(format_value(y))
-        elseif t == ":" then -- x is a chunk
+        elseif t == ":" and upp_enabled then -- x is a chunk
             local y = (assert(load(x:sub(2, -2), x, "t")))()
             -- if the chunk returns a value, process it
             -- otherwise leave it blank
             return y ~= nil and upp(format_value(y)) or ""
+        elseif t == "?" then -- enable/disable verbatim sections
+            upp_enabled = (assert(load("return "..x:sub(2, -2), x, "t")))()
+            return ""
         end
     end))
 end

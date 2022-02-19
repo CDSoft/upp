@@ -141,3 +141,14 @@ Count A's        : $(count "A") $(count "A") $(count "A")
 Count B's from 42: $(count("B", 42)) $(count "B") $(count "B")
 More A's         : $(count "A") $(count "A") $(count "A")
 More B's         : $(count "B") $(count "B") $(count "B")
+
+## Verbatim sections
+
+:(foo = "bar")
+
+upp interpolation enabled      : foo = $(foo)
+?(false)
+upp interpolation disabled     : foo = $(foo)
+?(true)
+upp interpolation enabled again: foo = $(foo)
+

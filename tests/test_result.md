@@ -136,6 +136,17 @@ Count A's        : 1 2 3
 Count B's from 42: 42 43 44
 More A's         : 4 5 6
 More B's         : 45 46 47
+
+## Verbatim sections
+
+
+
+upp interpolation enabled      : foo = bar
+
+upp interpolation disabled     : foo = $(foo)
+
+upp interpolation enabled again: foo = bar
+
 # Additional tests
 
 A second file just to make sure `input_files()` can contain more than one filename.
