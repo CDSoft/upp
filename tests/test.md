@@ -106,6 +106,7 @@ This file uses the name of the parent file as prefix.
 ## map
 
 squares: $(map(function(x) return x*x end, range(1, 10)))
+cubes  : $(map(function(x, i) return x*x*x, i end, range(1, 10)) -- only the first returned value shall be used)
 
 ## filter
 

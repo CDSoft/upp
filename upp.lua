@@ -67,7 +67,7 @@ local nop = const(nil)
 
 function map(f, xs)
     local ys = {}
-    for _, x in ipairs(xs) do table.insert(ys, f(x)) end
+    for _, x in ipairs(xs) do table.insert(ys, (f(x))) end
     return ys
 end
 
