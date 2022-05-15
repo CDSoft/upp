@@ -407,12 +407,12 @@ function upp(content)
         end
         return tostring(x)
     end
-    return (content:gsub("([$:?])(%b())", function(t, x)
-        if t == "$" and upp_enabled then -- x is an expression
+    return (content:gsub("([$:@?])(@?)(%b())", function(t, t2, x)
+        if (t == "$" or (t == "@" and t2 == "")) and upp_enabled then -- x is an expression
             local y = (assert(load("return "..x:sub(2, -2), x, "t")))()
             -- if the expression can be evaluated, process it
             return upp(format_value(y))
-        elseif t == ":" and upp_enabled then -- x is a chunk
+        elseif (t == ":" or (t == "@" and t2 == "@")) and upp_enabled then -- x is a chunk
             local y = (assert(load(x:sub(2, -2), x, "t")))()
             -- if the chunk returns a value, process it
             -- otherwise leave it blank

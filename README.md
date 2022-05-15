@@ -73,14 +73,16 @@ options:
 
 # Documentation
 
-Lua expressions are embedded in the document to process: `$( Lua expression )`.
+Lua expressions are embedded in the document to process: `$( Lua expression )` or `@( Lua expression )`.
 
-Lua chunks can also be embedded in the document to add new definitions: `:( Lua chunk )`.
+Lua chunks can also be embedded in the document to add new definitions: `:( Lua chunk )` or `@@( Lua chunk )`.
+
+The `@` notation has been added as it is more Markdown syntax friendly (`$` may interfere with LaTeX equations).
 
 A macro is just a Lua function. Some macros are predefined by `upp`.
 New macros can be defined by loading Lua scripts (options `-l` and `-e`) or embedded as Lua chunks.
 
-Expression and chunks can return values. These values are formated according to their types:
+Expression and chunks can return values. These values are formatted according to their types:
 
 - `__tostring` method from a custom metatable:
   if the value has a `__tostring` metamethod, it is used to format the value
@@ -89,7 +91,7 @@ Expression and chunks can return values. These values are formated according to 
     - the `sep` field of the table
     - the global `BLOCK_SEP` variable
     - `"\\n"`
-- other types are formated by the default `tostring` function.
+- other types are formatted by the default `tostring` function.
 
 ## Example
 

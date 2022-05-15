@@ -16,6 +16,15 @@ The included file is preprocessed in the same environment.
 foo = bar
 
 
+# `@` vs `$` notation
+
+
+
+
+
+- `:` works
+- `@` works
+
 # Some maths
 
 1 + 1 = 2
@@ -144,7 +153,7 @@ More B's         : 45 46 47
 
 upp interpolation enabled      : foo = bar
 
-upp interpolation disabled     : foo = $(foo)
+upp interpolation disabled     : foo = @(foo)
 
 upp interpolation enabled again: foo = bar
 
