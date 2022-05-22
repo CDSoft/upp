@@ -1,0 +1,3 @@
+[submodule "external/dockgen"]
+	path = external/dockgen
+	url = https://github.com/CDSoft/dockgen

@@ -110,9 +110,12 @@ $(BUILD)/unit_tests.c: upp.lua examples/unit_tests.lua tests/unit_tests.c Makefi
 	clang-format -i $@
 
 ####################################################################
-# Documentation
+# Binaries (for the latests Fedora and Ubuntu versions)
 ####################################################################
 
-.PHONY: doc
+.PHONY: release
 
-# TODO
+release: $(BUILD)/release/upp_release.lua
+
+$(BUILD)/release/upp%: upp.lua $(LIBS)
+	./release.sh

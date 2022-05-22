@@ -106,7 +106,7 @@ This file uses the name of the parent file as prefix.
 
 # Standard library tests
 
-@@(require "pretty")
+@@(pretty = require "pretty")
 @@(BLOCK_SEP = ", ")
 
 ## range:
@@ -149,7 +149,7 @@ add "/" to all items: @(map(suffix"/", {"a", "b", "c"}))
 
 ## Counters
 
-@@(require "counter")
+@@(count = require "counter")
 
 Count A's        : @(count "A") @(count "A") @(count "A")
 Count B's from 42: @(count("B", 42)) @(count "B") @(count "B")

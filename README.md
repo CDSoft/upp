@@ -40,11 +40,8 @@ $ make install      # install upp in ~/.local/bin
 
 It is recommended to install upp from the sources.
 
-In case you need precompiled binaries (`upp` and Lua interpretor included),
-the latest binaries are available here:
-
-- [Linux UPP executable](http://cdelord.fr/upp/upp)
-- [Windows UPP executable](http://cdelord.fr/upp/upp.exe)
+In case you need precompiled binaries (`upp` and [Luax](http://cdelord.fr/lapp) interpretor included),
+the latest binaries are available here: [UPP precompiled binaries](http://cdelord.fr/upp/release.html)
 
 ## Test
 

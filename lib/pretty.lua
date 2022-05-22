@@ -22,7 +22,8 @@ local function _pretty(t, indent)
     end
 end
 
-function pretty(x)
+local function pretty(x)
     return setmetatable(x, {__tostring = _pretty})
 end
 
+return pretty
