@@ -31,12 +31,15 @@ clean:
 # Installation
 ####################################################################
 
-.PHONY: install
+.PHONY: install install_sources
 
-install:
+install_sources:
 	install -T upp.lua $(INSTALL_PATH)/upp
 	mkdir -p $(LIB_INSTALL_PATH)/
 	install lib/* $(LIB_INSTALL_PATH)/
+
+install:
+	lapp upp.lua $(LIBS) -o $(INSTALL_PATH)/upp
 
 ####################################################################
 # Tests
