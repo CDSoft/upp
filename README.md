@@ -26,7 +26,7 @@ Anybody can contribute on [GitHub] to:
 
 ## Prerequisites
 
-- [Lua] (version 5.4.3)
+- [Lua] (version 5.4.4)
 
 ## Installation from source
 
@@ -98,7 +98,8 @@ The user's home is $(os.getenv "HOME").
 
 ## Builtin macros
 
-* All Lua functions and modules are available as `upp` macros (see <https://www.lua.org/manual/>).
+* All Lua and Luax functions and modules are available as `upp` macros
+  (see <https://www.lua.org/manual/> and <http://cdelord.fr/lapp/#built-in-modules>).
   E.g.:
     * `require(module)`: import a Lua script (e.g. to define new macros, variables, ...).
 * `input_files()`: list of the input files given on the command line.
