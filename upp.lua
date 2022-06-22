@@ -55,29 +55,36 @@ end
 --   Various functions usable in macros
 --]]----------------------------------------------------------------
 
-local function id(x)
-    return x
+function id(...)
+    return ...
 end
 
-local function const(x)
-    return function() return x end
+function const(...)
+    local res = {...}
+    return function() return table.unpack(res) end
 end
 
 local nop = const(nil)
 
 function map(f, xs)
+    if type(f) == "table" and type(xs) == "function" then f, xs = xs, f end
     local ys = {}
-    for _, x in ipairs(xs) do table.insert(ys, (f(x))) end
+    for i, x in ipairs(xs) do table.insert(ys, (f(x, i))) end
     return ys
 end
 
 function filter(p, xs)
+    if type(p) == "table" and type(xs) == "function" then p, xs = xs, p end
     local ys = {}
-    for _, x in ipairs(xs) do if p(x) then table.insert(ys, x) end end
+    for i, x in ipairs(xs) do
+        if p(x, i) then table.insert(ys, x) end
+    end
     return ys
 end
 
 function range(a, b, step)
+    assert(step ~= 0, "range step can not be zero")
+    if not b then a, b = 1, a end
     step = step or (a < b and 1) or (a > b and -1)
     local r = {}
     if a < b then
@@ -104,7 +111,8 @@ end
 
 function concat(...)
     local t = {}
-    for _, ti in ipairs({...}) do
+    for i = 1, select("#", ...) do
+        local ti = select(i, ...)
         for _, v in ipairs(ti) do table.insert(t, v) end
     end
     return t
@@ -112,7 +120,8 @@ end
 
 function merge(...)
     local t = {}
-    for _, ti in ipairs({...}) do
+    for i = 1, select("#", ...) do
+        local ti = select(i, ...)
         for k, v in pairs(ti) do t[k] = v end
     end
     return t
