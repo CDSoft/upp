@@ -120,5 +120,5 @@ $(BUILD)/unit_tests.c: upp.lua examples/unit_tests.lua tests/unit_tests.c Makefi
 
 release: $(BUILD)/release/upp_release.lua
 
-$(BUILD)/release/upp%: upp.lua $(LIBS)
+$(BUILD)/release/upp%: release.sh upp.lua $(LIBS)
 	./release.sh

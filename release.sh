@@ -36,36 +36,40 @@ build()
 {
     local OS="$1"
     local OS_VERSION="$2"
-    local LINUX_BINARY=upp-$OS-$OS_VERSION-x86_64
+    local LINUX_ARCHIVE=upp-$OS-$OS_VERSION-x86_64.tar.gz
 
-    echo "{'$OS', '$OS_VERSION', '$LINUX_BINARY'}," >> $INDEX_NEW
+    echo "{'$OS', '$OS_VERSION', '$LINUX_ARCHIVE'}," >> $INDEX_NEW
 
-    [ -f $RELEASE/$LINUX_BINARY ] && return
+    [ -f $RELEASE/$LINUX_ARCHIVE ] && return
 
     local TAG=$(external/dockgen/dockgen.lua $OS $OS_VERSION lapp $LAPP_VERSION)
     docker run                                          \
         --privileged                                    \
         --volume $PWD:/mnt/app                          \
         -t -i "$TAG"                                    \
-        lapp upp.lua lib/*.lua -o $RELEASE/$LINUX_BINARY
+        lapp upp.lua lib/*.lua -o $RELEASE/upp
+    tar czf $RELEASE/$LINUX_ARCHIVE --transform="s#.*/##" README.md $RELEASE/upp
+    rm $RELEASE/upp
 }
 
 build_win()
 {
     local OS="$1"
     local OS_VERSION="$2"
-    local WINDOWS_BINARY=upp-win-x86_64.exe
+    local WINDOWS_ARCHIVE=upp-win-x86_64.zip
 
-    echo "{'Windows', '', '$WINDOWS_BINARY'}," >> $INDEX_NEW
+    echo "{'Windows', '', '$WINDOWS_ARCHIVE'}," >> $INDEX_NEW
 
-    [ -f $RELEASE/$WINDOWS_BINARY ] && return
+    [ -f $RELEASE/$WINDOWS_ARCHIVE ] && return
 
     local TAG=$(external/dockgen/dockgen.lua $OS $OS_VERSION lapp $LAPP_VERSION)
     docker run                                          \
         --privileged                                    \
         --volume $PWD:/mnt/app                          \
         -t -i "$TAG"                                    \
-        lapp upp.lua lib/*.lua -o $RELEASE/$WINDOWS_BINARY
+        lapp upp.lua lib/*.lua -o $RELEASE/upp.exe
+    zip --junk-paths $RELEASE/$WINDOWS_ARCHIVE README.md $RELEASE/upp.exe
+    rm $RELEASE/upp.exe
 }
 
 ###############################################################################
@@ -74,13 +78,15 @@ build_win()
 
 build_generic()
 {
-    local BYTECODE=upp-generic.lc
+    local BYTECODE_ARCHIVE=upp-generic.tar.gz
 
-    echo "{'Generic', 'luax', '$BYTECODE'}," >> $INDEX_NEW
+    echo "{'Generic', 'luax', '$BYTECODE_ARCHIVE'}," >> $INDEX_NEW
 
-    [ -f $RELEASE/$BYTECODE ] && return
+    [ -f $RELEASE/$BYTECODE_ARCHIVE ] && return
 
-    lapp upp.lua lib/*.lua -o $RELEASE/$BYTECODE
+    lapp upp.lua lib/*.lua -o $RELEASE/upp.lc
+    tar czf $RELEASE/$BYTECODE_ARCHIVE --transform="s#.*/##" README.md $RELEASE/upp.lc
+    rm $RELEASE/upp.lc
 }
 
 ###############################################################################
