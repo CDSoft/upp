@@ -20,7 +20,7 @@
 
 # Use docker to build upp for Debian, Ubuntu, Fedora and Windows
 
-LAPP_VERSION=0.6.6
+LAPP_VERSION=0.7
 
 RELEASE=.build/release
 INDEX=$RELEASE/upp_release.lua
