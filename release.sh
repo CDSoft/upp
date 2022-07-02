@@ -20,7 +20,7 @@
 
 # Use docker to build upp for Debian, Ubuntu, Fedora and Windows
 
-LAPP_VERSION=0.7
+LAPP_VERSION=0.8.1
 
 RELEASE=.build/release
 INDEX=$RELEASE/upp_release.lua
@@ -29,45 +29,31 @@ INDEX_NEW=$RELEASE/upp_release.lua.new
 set -ex
 
 ###############################################################################
-# Native Linux binaries built with docker
+# Native Linux binaries
 ###############################################################################
 
-build()
+build_linux()
 {
-    local OS="$1"
-    local OS_VERSION="$2"
-    local LINUX_ARCHIVE=upp-$OS-$OS_VERSION-x86_64.tar.gz
+    local LINUX_ARCHIVE=upp-linux-x86_64.tar.gz
 
-    echo "{'$OS', '$OS_VERSION', '$LINUX_ARCHIVE'}," >> $INDEX_NEW
+    echo "{'Linux', '$LINUX_ARCHIVE'}," >> $INDEX_NEW
 
     [ -f $RELEASE/$LINUX_ARCHIVE ] && return
 
-    local TAG=$(external/dockgen/dockgen.lua $OS $OS_VERSION lapp $LAPP_VERSION)
-    docker run                                          \
-        --privileged                                    \
-        --volume $PWD:/mnt/app                          \
-        -t -i "$TAG"                                    \
-        lapp upp.lua lib/*.lua -o $RELEASE/upp
+    lapp upp.lua lib/*.lua -o $RELEASE/upp
     tar czf $RELEASE/$LINUX_ARCHIVE --transform="s#.*/##" README.md $RELEASE/upp
     rm $RELEASE/upp
 }
 
 build_win()
 {
-    local OS="$1"
-    local OS_VERSION="$2"
     local WINDOWS_ARCHIVE=upp-win-x86_64.zip
 
-    echo "{'Windows', '', '$WINDOWS_ARCHIVE'}," >> $INDEX_NEW
+    echo "{'Windows', '$WINDOWS_ARCHIVE'}," >> $INDEX_NEW
 
     [ -f $RELEASE/$WINDOWS_ARCHIVE ] && return
 
-    local TAG=$(external/dockgen/dockgen.lua $OS $OS_VERSION lapp $LAPP_VERSION)
-    docker run                                          \
-        --privileged                                    \
-        --volume $PWD:/mnt/app                          \
-        -t -i "$TAG"                                    \
-        lapp upp.lua lib/*.lua -o $RELEASE/upp.exe
+    lapp upp.lua lib/*.lua -o $RELEASE/upp.exe
     zip --junk-paths $RELEASE/$WINDOWS_ARCHIVE README.md $RELEASE/upp.exe
     rm $RELEASE/upp.exe
 }
@@ -80,7 +66,7 @@ build_generic()
 {
     local BYTECODE_ARCHIVE=upp-generic.tar.gz
 
-    echo "{'Generic', 'luax', '$BYTECODE_ARCHIVE'}," >> $INDEX_NEW
+    echo "{'Generic bytecode', '$BYTECODE_ARCHIVE'}," >> $INDEX_NEW
 
     [ -f $RELEASE/$BYTECODE_ARCHIVE ] && return
 
@@ -97,23 +83,8 @@ mkdir -p $RELEASE
 
 echo "return {" > $INDEX_NEW
 
-build debian 9
-build debian 10
-build debian 11
-
-build ubuntu 20.04      # LTS
-build ubuntu 21.04
-build ubuntu 21.10
-build ubuntu 22.04      # LTS
-
-build fedora 34
-build fedora 35
-build fedora 36
-
-build archlinux latest
-
-build_win fedora 36
-
+build_linux
+build_win
 build_generic
 
 echo "}" >> $INDEX_NEW
