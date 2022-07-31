@@ -38,7 +38,7 @@ build_linux()
 
     [ -f $RELEASE/$LINUX_ARCHIVE ] && return
 
-    lapp upp.lua lib/*.lua -o $RELEASE/upp
+    luax upp.lua lib/*.lua -o $RELEASE/upp -t luax-x86_64-linux-musl
     tar czf $RELEASE/$LINUX_ARCHIVE --transform="s#.*/##" README.md $RELEASE/upp
     rm $RELEASE/upp
 }
@@ -51,30 +51,13 @@ build_win()
 
     [ -f $RELEASE/$WINDOWS_ARCHIVE ] && return
 
-    lapp upp.lua lib/*.lua -o $RELEASE/upp.exe
+    luax upp.lua lib/*.lua -o $RELEASE/upp.exe -t luax-x86_64-windows-gnu.exe
     zip --junk-paths $RELEASE/$WINDOWS_ARCHIVE README.md $RELEASE/upp.exe
     rm $RELEASE/upp.exe
 }
 
 ###############################################################################
-# Generic portable bytecode
-###############################################################################
-
-build_generic()
-{
-    local BYTECODE_ARCHIVE=upp-generic.tar.gz
-
-    echo "{'Generic bytecode', '$BYTECODE_ARCHIVE'}," >> $INDEX_NEW
-
-    [ -f $RELEASE/$BYTECODE_ARCHIVE ] && return
-
-    lapp upp.lua lib/*.lua -o $RELEASE/upp.lc
-    tar czf $RELEASE/$BYTECODE_ARCHIVE --transform="s#.*/##" README.md $RELEASE/upp.lc
-    rm $RELEASE/upp.lc
-}
-
-###############################################################################
-# Build binaries for mainstream Linux distributions
+# Build binaries for Linuw and Windows
 ###############################################################################
 
 mkdir -p $RELEASE
@@ -83,7 +66,6 @@ echo "return {" > $INDEX_NEW
 
 build_linux
 build_win
-build_generic
 
 echo "}" >> $INDEX_NEW
 

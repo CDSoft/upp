@@ -40,7 +40,7 @@ $ make install      # install upp in ~/.local/bin
 
 It is recommended to install upp from the sources.
 
-In case you need precompiled binaries (`upp` and [Luax](http://cdelord.fr/lapp) interpretor included),
+In case you need precompiled binaries (`upp` and [Luax](http://cdelord.fr/luax) interpretor included),
 the latest binaries are available here: [UPP precompiled binaries](http://cdelord.fr/upp/release.html)
 
 ## Test
@@ -99,7 +99,7 @@ The user's home is $(os.getenv "HOME").
 ## Builtin macros
 
 * All Lua and Luax functions and modules are available as `upp` macros
-  (see <https://www.lua.org/manual/> and <http://cdelord.fr/lapp/#built-in-modules>).
+  (see <https://www.lua.org/manual/> and <http://cdelord.fr/luax/#built-in-modules>).
   E.g.:
     * `require(module)`: import a Lua script (e.g. to define new macros, variables, ...).
 * `input_files()`: list of the input files given on the command line.
