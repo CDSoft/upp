@@ -27,18 +27,57 @@ INDEX_NEW=$RELEASE/upp_release.lua.new
 set -ex
 
 ###############################################################################
-# Native Linux binaries
+# Native Linux/MacOS/Windows binaries
 ###############################################################################
 
-build_linux()
+build_linux_intel()
 {
     local LINUX_ARCHIVE=upp-linux-x86_64.tar.gz
 
-    echo "{'Linux', '$LINUX_ARCHIVE'}," >> $INDEX_NEW
+    echo "{'Linux x86_64', '$LINUX_ARCHIVE'}," >> $INDEX_NEW
 
     [ -f $RELEASE/$LINUX_ARCHIVE ] && return
 
-    luax upp.lua lib/*.lua -o $RELEASE/upp -t luax-x86_64-linux-musl
+    luax -o $RELEASE/upp -t luax-x86_64-linux-musl upp.lua lib/*.lua
+    tar czf $RELEASE/$LINUX_ARCHIVE --transform="s#.*/##" README.md $RELEASE/upp
+    rm $RELEASE/upp
+}
+
+build_linux_arm()
+{
+    local LINUX_ARCHIVE=upp-linux-aarch64.tar.gz
+
+    echo "{'Linux aarch64', '$LINUX_ARCHIVE'}," >> $INDEX_NEW
+
+    [ -f $RELEASE/$LINUX_ARCHIVE ] && return
+
+    luax -o $RELEASE/upp -t luax-aarch64-linux-musl upp.lua lib/*.lua
+    tar czf $RELEASE/$LINUX_ARCHIVE --transform="s#.*/##" README.md $RELEASE/upp
+    rm $RELEASE/upp
+}
+
+build_macos_intel()
+{
+    local LINUX_ARCHIVE=upp-macos-x86_64.tar.gz
+
+    echo "{'MacOS x86_64', '$LINUX_ARCHIVE'}," >> $INDEX_NEW
+
+    [ -f $RELEASE/$LINUX_ARCHIVE ] && return
+
+    luax -o $RELEASE/upp -t luax-x86_64-macos-gnu upp.lua lib/*.lua
+    tar czf $RELEASE/$LINUX_ARCHIVE --transform="s#.*/##" README.md $RELEASE/upp
+    rm $RELEASE/upp
+}
+
+build_macos_arm()
+{
+    local LINUX_ARCHIVE=upp-macos-aarch64.tar.gz
+
+    echo "{'MacOS aarch64', '$LINUX_ARCHIVE'}," >> $INDEX_NEW
+
+    [ -f $RELEASE/$LINUX_ARCHIVE ] && return
+
+    luax -o $RELEASE/upp -t luax-aarch64-macos-gnu upp.lua lib/*.lua
     tar czf $RELEASE/$LINUX_ARCHIVE --transform="s#.*/##" README.md $RELEASE/upp
     rm $RELEASE/upp
 }
@@ -51,20 +90,23 @@ build_win()
 
     [ -f $RELEASE/$WINDOWS_ARCHIVE ] && return
 
-    luax upp.lua lib/*.lua -o $RELEASE/upp.exe -t luax-x86_64-windows-gnu.exe
+    luax -o $RELEASE/upp.exe -t luax-x86_64-windows-gnu.exe upp.lua lib/*.lua
     zip --junk-paths $RELEASE/$WINDOWS_ARCHIVE README.md $RELEASE/upp.exe
     rm $RELEASE/upp.exe
 }
 
 ###############################################################################
-# Build binaries for Linuw and Windows
+# Build binaries
 ###############################################################################
 
 mkdir -p $RELEASE
 
 echo "return {" > $INDEX_NEW
 
-build_linux
+build_linux_intel
+build_linux_arm
+build_macos_intel
+build_macos_arm
 build_win
 
 echo "}" >> $INDEX_NEW

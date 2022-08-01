@@ -39,7 +39,7 @@ install_sources:
 	install lib/* $(LIB_INSTALL_PATH)/
 
 install:
-	luax upp.lua $(LIBS) -o $(INSTALL_PATH)/upp
+	luax -o $(INSTALL_PATH)/upp upp.lua $(LIBS)
 
 ####################################################################
 # Tests
