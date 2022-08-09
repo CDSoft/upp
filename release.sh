@@ -18,81 +18,44 @@
 # For further information about UPP you can visit
 # http://cdelord.fr/upp
 
-# Use docker to build upp for Debian, Ubuntu, Fedora and Windows
-
 RELEASE=.build/release
 INDEX=$RELEASE/upp_release.lua
 INDEX_NEW=$RELEASE/upp_release.lua.new
 
-set -ex
+set -e
 
 ###############################################################################
 # Native Linux/MacOS/Windows binaries
 ###############################################################################
 
-build_linux_intel()
+build()
 {
-    local LINUX_ARCHIVE=upp-linux-x86_64.tar.gz
+    local ARCH=$1
+    local OS=$2
+    local LIBC=$3
 
-    echo "{'Linux x86_64', '$LINUX_ARCHIVE'}," >> $INDEX_NEW
+    local ARCHIVE
+    case $OS in
+        (windows)   ARCHIVE=upp-$ARCH-$OS-$LIBC.zip ;;
+        (*)         ARCHIVE=upp-$ARCH-$OS-$LIBC.tar.xz ;;
+    esac
 
-    [ -f $RELEASE/$LINUX_ARCHIVE ] && return
+    echo "{'$OS', '$ARCH', '$ARCHIVE'}," >> $INDEX_NEW
 
-    luax -o $RELEASE/upp -t luax-x86_64-linux-musl upp.lua lib/*.lua
-    tar czf $RELEASE/$LINUX_ARCHIVE --transform="s#.*/##" README.md $RELEASE/upp
-    rm $RELEASE/upp
-}
+    [ -f $RELEASE/$ARCHIVE ] && return
 
-build_linux_arm()
-{
-    local LINUX_ARCHIVE=upp-linux-aarch64.tar.gz
-
-    echo "{'Linux aarch64', '$LINUX_ARCHIVE'}," >> $INDEX_NEW
-
-    [ -f $RELEASE/$LINUX_ARCHIVE ] && return
-
-    luax -o $RELEASE/upp -t luax-aarch64-linux-musl upp.lua lib/*.lua
-    tar czf $RELEASE/$LINUX_ARCHIVE --transform="s#.*/##" README.md $RELEASE/upp
-    rm $RELEASE/upp
-}
-
-build_macos_intel()
-{
-    local LINUX_ARCHIVE=upp-macos-x86_64.tar.gz
-
-    echo "{'MacOS x86_64', '$LINUX_ARCHIVE'}," >> $INDEX_NEW
-
-    [ -f $RELEASE/$LINUX_ARCHIVE ] && return
-
-    luax -o $RELEASE/upp -t luax-x86_64-macos-gnu upp.lua lib/*.lua
-    tar czf $RELEASE/$LINUX_ARCHIVE --transform="s#.*/##" README.md $RELEASE/upp
-    rm $RELEASE/upp
-}
-
-build_macos_arm()
-{
-    local LINUX_ARCHIVE=upp-macos-aarch64.tar.gz
-
-    echo "{'MacOS aarch64', '$LINUX_ARCHIVE'}," >> $INDEX_NEW
-
-    [ -f $RELEASE/$LINUX_ARCHIVE ] && return
-
-    luax -o $RELEASE/upp -t luax-aarch64-macos-gnu upp.lua lib/*.lua
-    tar czf $RELEASE/$LINUX_ARCHIVE --transform="s#.*/##" README.md $RELEASE/upp
-    rm $RELEASE/upp
-}
-
-build_win()
-{
-    local WINDOWS_ARCHIVE=upp-win-x86_64.zip
-
-    echo "{'Windows', '$WINDOWS_ARCHIVE'}," >> $INDEX_NEW
-
-    [ -f $RELEASE/$WINDOWS_ARCHIVE ] && return
-
-    luax -o $RELEASE/upp.exe -t luax-x86_64-windows-gnu.exe upp.lua lib/*.lua
-    zip --junk-paths $RELEASE/$WINDOWS_ARCHIVE README.md $RELEASE/upp.exe
-    rm $RELEASE/upp.exe
+    case $OS in
+        (windows)
+            luax -o $RELEASE/upp.exe -t luax-$ARCH-$OS-$LIBC.exe upp.lua lib/*.lua
+            zip -9 --junk-paths $RELEASE/$ARCHIVE README.md $RELEASE/upp.exe
+            rm $RELEASE/upp.exe
+            ;;
+        (*)
+            luax -o $RELEASE/upp -t luax-$ARCH-$OS-$LIBC upp.lua lib/*.lua
+            XZ_OPT=-9 tar cJf $RELEASE/$ARCHIVE --transform="s#.*/##" README.md $RELEASE/upp
+            rm $RELEASE/upp
+            ;;
+    esac
 }
 
 ###############################################################################
@@ -103,17 +66,24 @@ mkdir -p $RELEASE
 
 echo "return {" > $INDEX_NEW
 
-build_linux_intel
-build_linux_arm
-build_macos_intel
-build_macos_arm
-build_win
+build x86_64  linux musl
+build i386    linux musl
+build aarch64 linux musl
+
+build x86_64  macos gnu
+build aarch64 macos gnu
+
+build x86_64  windows gnu
+build i386    windows gnu
 
 echo "}" >> $INDEX_NEW
 
-if ! [ -f $INDEX ] || diff -q $INDEX_NEW $INDEX
+if ! [ -f $INDEX ] || ! diff -q $INDEX_NEW $INDEX
 then
     mv $INDEX_NEW $INDEX
 else
     rm $INDEX_NEW
 fi
+
+exa --color=always -lh $RELEASE
+bat --force-colorization --paging=never $INDEX
