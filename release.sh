@@ -46,12 +46,12 @@ build()
 
     case $OS in
         (windows)
-            luax -o $RELEASE/upp.exe -t luax-$ARCH-$OS-$LIBC.exe upp.lua lib/*.lua
+            luax -o $RELEASE/upp.exe -t luax-$ARCH-$OS-$LIBC.exe upp.lua -autoload-all lib/*.lua
             zip -9 --junk-paths $RELEASE/$ARCHIVE README.md $RELEASE/upp.exe
             rm $RELEASE/upp.exe
             ;;
         (*)
-            luax -o $RELEASE/upp -t luax-$ARCH-$OS-$LIBC upp.lua lib/*.lua
+            luax -o $RELEASE/upp -t luax-$ARCH-$OS-$LIBC upp.lua -autoload-all lib/*.lua
             XZ_OPT=-9 tar cJf $RELEASE/$ARCHIVE --transform="s#.*/##" README.md $RELEASE/upp
             rm $RELEASE/upp
             ;;
