@@ -20,26 +20,39 @@ INSTALL_PATH = $(HOME)/.local/bin
 LIB_INSTALL_PATH = $(dir $(INSTALL_PATH))/lib/upp
 BUILD = .build
 
-LIBS = $(wildcard lib/*)
+UPP = $(BUILD)/upp
 
+LIBS = $(sort $(wildcard lib/*))
+
+# avoid being polluted by user definitions
+export LUA_PATH := ./?.lua
+
+all: compile
 all: test
 
 clean:
 	rm -rf $(BUILD)
 
 ####################################################################
+# Compilation
+####################################################################
+
+compile: $(UPP)
+
+$(UPP): upp.lua $(LIBS)
+	@mkdir -p $(dir $@)
+	luax -o $@ upp.lua -autoload-all $(LIBS)
+
+####################################################################
 # Installation
 ####################################################################
 
-.PHONY: install install_sources
+.PHONY: install
 
-install_sources:
-	install -T upp.lua $(INSTALL_PATH)/upp
-	mkdir -p $(LIB_INSTALL_PATH)/
-	install lib/* $(LIB_INSTALL_PATH)/
+install: $(INSTALL_PATH)/upp
 
-install:
-	luax -o $(INSTALL_PATH)/upp upp.lua $(patsubst %,-autoload %,$(LIBS))
+$(INSTALL_PATH)/upp: $(UPP)
+	install $^ $@
 
 ####################################################################
 # Tests
@@ -93,9 +106,9 @@ diff_test_multiple_outputs_1: $(BUILD)/test-complement.txt tests/test_result-com
 diff_test_multiple_outputs_2: $(BUILD)/other_file.md tests/test_result_other_file.md
 	diff -q $^ || meld $^
 
-$(BUILD)/test.md $(BUILD)/test.d $(BUILD)/test-complement.txt $(BUILD)/other_file.md &: upp.lua tests/test.md tests/test2.md tests/test_include.md tests/test_lib.lua Makefile $(LIBS)
+$(BUILD)/test.md $(BUILD)/test.d $(BUILD)/test-complement.txt $(BUILD)/other_file.md &: $(UPP) tests/test.md tests/test2.md tests/test_include.md tests/test_lib.lua Makefile
 	@mkdir -p $(BUILD)
-	UPP_PATH=tests ./upp.lua -p tests -p lib -e 'build="$(BUILD)"' -e 'foo="bar"' -l test_lib.lua tests/test.md tests/test2.md -o $(word 1,$@) -MT fictive_target -MT $(BUILD)/non_discoverable_target.txt -MD
+	UPP_PATH=tests $(UPP) -p tests -p lib -e 'build="$(BUILD)"' -e 'foo="bar"' -l test_lib.lua tests/test.md tests/test2.md -o $(word 1,$@) -MT fictive_target -MT $(BUILD)/non_discoverable_target.txt -MD
 
 ####################################################################
 # Tests: pluggin example (unit tests generation)

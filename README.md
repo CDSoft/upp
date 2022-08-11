@@ -3,6 +3,7 @@
 [UPP]: http://cdelord.fr/upp "Universal PreProcessor"
 [Panda]: http://cdelord.fr/panda "Pandoc add-ons (Lua filters for Pandoc)"
 [Lua]: http://www.lua.org/
+[LuaX]: https://github.com/CDSoft/luax
 [GitHub]: https://github.com/CDSoft/upp
 [cdelord.fr]: http://cdelord.fr
 
@@ -27,6 +28,7 @@ Anybody can contribute on [GitHub] to:
 ## Prerequisites
 
 - [Lua] (version 5.4.4)
+- [LuaX]
 
 ## Installation from source
 
