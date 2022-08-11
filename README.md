@@ -42,8 +42,9 @@ $ make install      # install upp in ~/.local/bin
 
 It is recommended to install upp from the sources.
 
-In case you need precompiled binaries (`upp` and [Luax](http://cdelord.fr/luax) interpretor included),
-the latest binaries are available here: [UPP precompiled binaries](http://cdelord.fr/upp/release.html)
+In case you need precompiled binaries (`upp` and [Luax](http://cdelord.fr/luax)
+interpretor included), the latest binaries are available here: [UPP precompiled
+binaries](http://cdelord.fr/upp/release.html)
 
 ## Test
 
@@ -72,21 +73,26 @@ options:
 
 # Documentation
 
-Lua expressions are embedded in the document to process: `$( Lua expression )` or `@( Lua expression )`.
+Lua expressions are embedded in the document to process: `$( Lua expression )`
+or `@( Lua expression )`.
 
-Lua chunks can also be embedded in the document to add new definitions: `:( Lua chunk )` or `@@( Lua chunk )`.
+Lua chunks can also be embedded in the document to add new definitions: `:( Lua
+chunk )` or `@@( Lua chunk )`.
 
-The `@` notation has been added as it is more Markdown syntax friendly (`$` may interfere with LaTeX equations).
+The `@` notation has been added as it is more Markdown syntax friendly (`$` may
+interfere with LaTeX equations).
 
-A macro is just a Lua function. Some macros are predefined by `upp`.
-New macros can be defined by loading Lua scripts (options `-l` and `-e`) or embedded as Lua chunks.
+A macro is just a Lua function. Some macros are predefined by `upp`. New macros
+can be defined by loading Lua scripts (options `-l` and `-e`) or embedded as
+Lua chunks.
 
-Expression and chunks can return values. These values are formatted according to their types:
+Expression and chunks can return values. These values are formatted according
+to their types:
 
-- `__tostring` method from a custom metatable:
-  if the value has a `__tostring` metamethod, it is used to format the value
-- arrays (with no `__tostring` metamethod):
-  items are concatenated (with `table.concat`) the separator is the first defined among:
+- `__tostring` method from a custom metatable: if the value has a `__tostring`
+  metamethod, it is used to format the value
+- arrays (with no `__tostring` metamethod): items are concatenated (with
+  `table.concat`) the separator is the first defined among:
     - the `sep` field of the table
     - the global `BLOCK_SEP` variable
     - `"\\n"`
@@ -133,6 +139,25 @@ Evaluate a Lua expression: $( 1 + lua_function(lua_variable) )
 Include another document: $(include "other_document_name")
 Conditional text: $(when (lang == "fr") [[ Ce texte est écrit en français ! ]])
 ```
+
+# Additional packages
+
+`upp` comes with some packages (already included in the binaries, no external
+dependancies are required).
+
+## counter
+
+The `counter` function generates counters:
+
+* `counter(name, initial_value)`: create a counter named `name` with `initial_value` as the initial value.
+  It returns `initial_value`. The default initial value is `1`.
+* `counter(name)`: incremental the previous value of the counter `name` and returns it.
+
+## req
+
+The package `req` provides basic requirement management tools.
+
+**Warning**: this package is still experimental and not tested...
 
 # License
 
