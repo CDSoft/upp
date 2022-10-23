@@ -90,8 +90,7 @@
 -- }
 
 local fs = require "fs"
-local fun = require "fun"
-local L = require "List"
+local F = require "fun"
 
 local COLOR = {
     ORPHAN = "cyan",
@@ -113,9 +112,9 @@ local function getvar(name)
 end
 
 local function reqstr(r)
-    local refs = L(r.refs or {}):map(function(ref) return ("%q"):format(ref) end)
+    local refs = F(r.refs or {}):map(function(ref) return ("%q"):format(ref) end)
     local attrs = {}
-    for k, v in M.pairs(r) do
+    for k, v in F.pairs(r) do
         if k ~= "file" and k ~= "id" and k ~= "title" and k ~= "refs" then
             attrs[#attrs+1] = ("%s = %q,"):format(k, v)
         end
@@ -134,11 +133,11 @@ local function ReqDB()
     local link = (output:match "%.html$" or output:match "%.pdf$") and output or nil
     local db = fs.is_file(path) and assert(loadfile(path))() or {}
     local order = (db.order or ""):words()
-    local order_dict = M.fromSet(P.const(true), order)
+    local order_dict = F.from_set(F.const(true), order)
     local files = (db.files or ""):words()
-    local files_dict = M.fromSet(P.const(true), files)
-    db = L(db):filter(function(r) return r.file ~= output end)
-    local old_reqs = M.fromList(db:map(function(r) return {r.id, r} end))
+    local files_dict = F.from_set(F.const(true), files)
+    local reqs = F.filter(function(r) return r.file ~= output end, db)
+    local old_reqs = F.from_list(reqs:map(function(r) return {r.id, r} end))
     local dbmt = {
         __index = {
             output = function(_) return output end,
@@ -156,7 +155,7 @@ local function ReqDB()
                     error(r.id..": already defined in "..old_req.file)
                 end
                 old_reqs[r.id] = r
-                db[#db+1] = r
+                reqs[#reqs+1] = r
                 if not order_dict[r.id] then
                     order[#order+1] = r.id
                     order_dict[r.id] = true
@@ -177,7 +176,7 @@ local function ReqDB()
                 local newdb = "return {\n"..
                                 ("order = %q,\n"):format(table.concat(order, " "))..
                                 ("files = %q,\n"):format(table.concat(files, " "))..
-                                table.concat(L.map(reqstr, db))..
+                                table.concat(F.map(reqstr, reqs))..
                               "}\n"
                 local f = assert(io.open(path, "w"))
                 f:write(newdb)
@@ -187,15 +186,15 @@ local function ReqDB()
                 local classes = {}
                 local direct = {}
                 local reverse = {}
-                L(db):map(function(req)
-                    L(req.refs or {}):map(function(ref_id)
+                reqs:map(function(req)
+                    F(req.refs or {}):map(function(ref_id)
                         direct[req.id] = direct[req.id] or {}
                         table.insert(direct[req.id], ref_id)
                         reverse[ref_id] = reverse[ref_id] or {}
                         table.insert(reverse[ref_id], req_id)
                     end)
                 end)
-                L(db):map(function(req)
+                reqs:map(function(req)
                     classes[req.id] = {
                         orphan = direct[req.id] == nil,
                         not_covered = reverse[req.id] == nil,
@@ -205,7 +204,7 @@ local function ReqDB()
             end;
         },
     }
-    _db = setmetatable(db, dbmt)
+    _db = setmetatable({}, dbmt)
     atexit(function() _db:save() end)
     return _db
 end
@@ -227,19 +226,19 @@ local function define_requirement(id)
     db:add(req)
     return setmetatable(req, {
         __tostring = function(_)
-            local t = L.concat{
+            local t = F.concat{
                 -- header (current requirement)
                 {
                     { ("**`%s`**"):format(req.id), req.title and ("**[%s]{}**"):format(req.title) or "" },
                 },
                 -- body (references)
-                L(req.refs or {}):map(function(ref)
+                F(req.refs or {}):map(function(ref)
                     local req0 = db:getreq(ref)
                     return { ("*[`%s`](%s#%s)*"):format(req0.id, req0.file ~= req.file and req0.link or "", req0.id), req0.title or "" }
                 end)
             }
-            local nb_columns = math.max(table.unpack(map(t, function(row) return #row end)))
-            local ws = L.range(1, nb_columns):map(function(i)
+            local nb_columns = math.max(table.unpack(t:map(function(row) return #row end)))
+            local ws = F.range(1, nb_columns):map(function(i)
                 return math.max(table.unpack(t:map(function(row) return #row[i] end)))
             end)
             local total_width = nb_columns - 1 -- spaces between columns
@@ -262,17 +261,17 @@ local function define_requirement(id)
             }
             local body =
                 -- rows of the table
-                L.flatten{
-                    t:map(function(row, i) return {
+                F.flatten{
+                    t:mapi(function(i, row) return {
                         table.concat(
-                            map(row, function(cell, j) return cell..(" "):rep(ws[j]-#cell) end),
+                            F(row):mapi(function(j, cell) return cell..(" "):rep(ws[j]-#cell) end),
                         " "),
                         i > 1 and i < #t and blank or {}
                     }
                     end)
                 }
             if #body > 1 then table.insert(body, 2, (sep:gsub("-", "-"))) end
-            return table.concat(L.concat{header, body, footer}, "\n")
+            return table.concat(F.concat{header, body, footer}, "\n")
         end,
         __call = function(_, attrs)
             for k, v in pairs(attrs) do req[k] = v end
@@ -293,15 +292,15 @@ end
 
 local function matrix(file)
     local db = ReqDB()
-    local t = { { "**File**", ("**[`%s`](%s)**"):format(file, file) } }
-    L(db:order()):map(function(id)
+    local t = F{ { "**File**", ("**[`%s`](%s)**"):format(file, file) } }
+    db:order():map(function(id)
         local req = db:getreq(id)
         if req.file == file then
             t[#t+1] = {
                 ("[`%s`](%s#%s)"):format(req.id, req.file ~= db:output() and req.link or "", req.id),
                 req.title or "",
             }
-            L(req.refs or {}):map(function(ref_id, i)
+            F(req.refs or {}):map(function(ref_id, i)
                 local req0 = db:getreq(ref_id)
                 if i == 1 then t[#t+1] = { "", "" } end
                 t[#t+1] = {
@@ -311,29 +310,29 @@ local function matrix(file)
             end)
         end
     end)
-    local nb_columns = math.max(table.unpack(map(t, function(row) return #row end)))
-    local ws = L.range(1, nb_columns):map(function(i)
-        return math.max(table.unpack(L(t):map(function(row) return #row[i] end)))
+    local nb_columns = math.max(table.unpack(t:map(function(row) return #row end)))
+    local ws = F.range(1, nb_columns):map(function(i)
+        return math.max(table.unpack(t:map(function(row) return #row[i] end)))
     end)
     local sep = "+-"..table.concat(ws:map(function(w) return ("-"):rep(w) end), "-+-").."-+"
-    L(t):map(function(row)
-        ws:map(function(w, i)
+    F(t):map(function(row)
+        ws:mapi(function(i, w)
             row[i] = row[i] .. (" "):rep(w - #row[i])
         end)
     end)
-    t = L(t):map(function(row) return "| "..table.concat(row, " | ").." |" end)
+    t = F(t):map(function(row) return "| "..table.concat(row, " | ").." |" end)
     local t2 = {}
-    t:map(function(row, i)
+    t:mapi(function(i, row)
         if i > 2 and not row:match "^|%s*|" then
             t2[#t2+1] = sep
         end
         t2[#t2+1] = row
     end)
-    t = L.concat(
+    t = F.concat{
         { sep },
         t2,
         { sep }
-    )
+    }
     table.insert(t, 3, (sep:gsub("-", "=")))
     return table.concat(t, "\n")
 end
@@ -347,16 +346,16 @@ return setmetatable({}, {
             local db = ReqDB()
             local files = current_file == nil and {db:output()}
                           or current_file == "g" and db:files()
-                          or L.flatten(current_file)
-            local matrices = L.map(matrix, files)
+                          or F.flatten{current_file}
+            local matrices = F.map(matrix, files)
             return table.concat(matrices, "\n\n")
         end,
         summary = function(current_file)
             local db = ReqDB()
             local files = current_file == nil and {db:output()}
                           or current_file == "g" and db:files()
-                          or L.flatten(current_file)
-            local file_selection = M.fromSet(P.const(true), files)
+                          or F.flatten{current_file}
+            local file_selection = F.from_set(F.const(true), files)
             local nb_reqs = 0
             local nb_reqs_covered = 0
             local nb_tests = 0
@@ -364,7 +363,7 @@ return setmetatable({}, {
             local nb_tests_failed = 0
             local nb_tests_passed = 0
             local class = db:classify()
-            L(db):map(function(req)
+            F(db):map(function(req)
                 if file_selection[req.file] then
                     if req.test then
                         nb_tests = nb_tests + 1
@@ -400,7 +399,7 @@ return setmetatable({}, {
             local groups = {}
             local links = {}
             local classes = db:classify()
-            L(db:order()):map(function(id)
+            db:order():map(function(id)
                 local req = db:getreq(id)
                 local group = groups[req.file] or {}
                 groups[req.file] = group
@@ -413,19 +412,19 @@ return setmetatable({}, {
                     or classes[id].orphan                                               and COLOR.ORPHAN
                                                                                         or  COLOR.NORMAL
                 )
-                L(req.refs or {}):map(function(ref)
+                F(req.refs or {}):map(function(ref)
                     links[#links+1] = ("%s -> %s"):format(ref, req.id)
                 end)
             end)
             local i = 0
-            M(groups):mapWithKey(function(file, nodes)
+            F(groups):mapk(function(file, nodes)
                 i = i + 1
                 g[#g+1] = "subgraph cluster_"..i.." {"
                 g[#g+1] = ("  label = %q;"):format(fs.basename(file))
-                L(nodes):map(function(node) g[#g+1] = ("  %s;"):format(node) end)
+                F(nodes):map(function(node) g[#g+1] = ("  %s;"):format(node) end)
                 g[#g+1] = "}"
             end)
-            g = L.concat{g, groups, links, {"}"}}
+            g = F.concat{g, groups, links, {"}"}}
             return table.concat(g, "\n")
         end,
     },
