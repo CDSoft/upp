@@ -6,9 +6,7 @@
 
 local function _pretty(t, indent)
     if type(t) == "table" then
-        local keys = {}
-        for k, _ in pairs(t) do table.insert(keys, k) end
-        table.sort(keys)
+        local keys = F.keys(t)
         local s = "{"
         indent = indent or ""
         local indent2 = indent.."  "

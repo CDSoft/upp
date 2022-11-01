@@ -127,11 +127,11 @@ evens: @(filter(function(x) return x % 2 == 0 end, range(1, 10)))
 
 ## concat
 
-{1,2,3} + {4,5,6} = @(concat({1,2,3},{4,5,6}))
+{1,2,3} + {4,5,6} = @(concat{{1,2,3},{4,5,6}})
 
 ## merge
 
-{a=1,b=2,c=3} + {d=4,a=5,e=6} = @(pretty(merge({a=1,b=2,c=3},{d=4,a=5,e=6})))
+{a=1,b=2,c=3} + {d=4,a=5,e=6} = @(pretty(merge{{a=1,b=2,c=3},{d=4,a=5,e=6}}))
 
 ## path
 

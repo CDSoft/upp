@@ -120,9 +120,9 @@ test_unit_tests: $(BUILD)/unit_tests.c tests/unit_tests_result.c
 diff_unit_tests: $(BUILD)/unit_tests.c tests/unit_tests_result.c
 	diff -q $^ || meld $^
 
-$(BUILD)/unit_tests.c: upp.lua examples/unit_tests.lua tests/unit_tests.c Makefile
+$(BUILD)/unit_tests.c: $(UPP) examples/unit_tests.lua tests/unit_tests.c Makefile
 	@mkdir -p $(BUILD)
-	./upp.lua -p examples -l unit_tests.lua tests/unit_tests.c -o $@
+	$(UPP) -p examples -l unit_tests.lua tests/unit_tests.c -o $@
 	clang-format -i $@
 
 ####################################################################

@@ -6,7 +6,7 @@
 #include <assert.h>
 
 :(  local n = 8
-    angles = map(function(i) return i*pi/n end, range(-n, n))
+    angles = F.map(function(i) return i*pi/n end, F.range(-n, n))
 )
 
 int main(void)
@@ -18,7 +18,7 @@ int main(void)
     $(test_f1 "sin" (angles))
 
     /* tan */
-    $(test_f1 "tan" (filter(function(a) return abs(abs(a)-pi/2) > 1e-4 end, angles)))
+    $(test_f1 "tan" (F.filter(function(a) return abs(abs(a)-pi/2) > 1e-4 end, angles)))
 
     return EXIT_SUCCESS;
 }

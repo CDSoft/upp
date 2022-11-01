@@ -41,153 +41,60 @@ Environment variables:
     UPP_PATH        paths to add to package.path
 ]]
 
---[[----------------------------------------------------------------
---   OS detection
---]]----------------------------------------------------------------
-
-local dir_sep
-do
-    local config = package.config:gmatch("[^\n]*")
-    dir_sep = config()
-end
+local F = require "fun"
+local fs = require "fs"
+local sh = require "sh"
 
 --[[----------------------------------------------------------------
 --   Various functions usable in macros
 --]]----------------------------------------------------------------
 
-function id(...)
-    return ...
+_ENV.F = require "fun"
+_ENV.fs = require "fs"
+
+local nop = F.const(nil)
+
+local function upp_on_strings(x)
+    if type(x) == "string" then return upp(x) end
+    if type(x) == "table" then return F.mapt(upp_on_strings, x) end
+    return x
 end
 
-function const(...)
-    local res = {...}
-    return function() return table.unpack(res) end
-end
-
-local nop = const(nil)
-
-function map(f, xs)
-    if type(f) == "table" and type(xs) == "function" then f, xs = xs, f end
-    local ys = {}
-    for i, x in ipairs(xs) do table.insert(ys, (f(x, i))) end
-    return ys
-end
-
-function filter(p, xs)
-    if type(p) == "table" and type(xs) == "function" then p, xs = xs, p end
-    local ys = {}
-    for i, x in ipairs(xs) do
-        if p(x, i) then table.insert(ys, x) end
+local function uppish(...)
+    local funcs = F.compose{...}
+    return function(...)
+        return funcs(table.unpack(F.map(upp_on_strings, {...})))
     end
-    return ys
 end
 
-function range(a, b, step)
-    assert(step ~= 0, "range step can not be zero")
-    if not b then a, b = 1, a end
-    step = step or (a < b and 1) or (a > b and -1)
-    local r = {}
-    if a < b then
-        assert(step > 0, "step shall be positive")
-        while a <= b do
-            table.insert(r, a)
-            a = a + step
-        end
-    elseif a > b then
-        assert(step < 0, "step shall be negative")
-        while a >= b do
-            table.insert(r, a)
-            a = a + step
-        end
-    else
-        table.insert(r, a)
-    end
-    return r
+local function get_first(x)
+    return x
 end
 
-local function clone(xs)
-    return map(id, xs)
-end
+_ENV.basename = uppish(fs.basename)
+_ENV.dirname = uppish(fs.dirname)
+_ENV.noext = uppish(get_first, fs.splitext)
+_ENV.join = uppish(fs.join)
 
-function concat(...)
-    local t = {}
-    for i = 1, select("#", ...) do
-        local ti = select(i, ...)
-        for _, v in ipairs(ti) do table.insert(t, v) end
-    end
-    return t
-end
+_ENV.sh = uppish(F.fst, assert, sh.read)
 
-function merge(...)
-    local t = {}
-    for i = 1, select("#", ...) do
-        local ti = select(i, ...)
-        for k, v in pairs(ti) do t[k] = v end
-    end
-    return t
-end
+_ENV.prefix = uppish(F.prefix)
+_ENV.suffix = uppish(F.suffix)
 
-local function sort(t)
-    local s = clone(t)
-    table.sort(s)
-    return s
-end
+_ENV.map = function(f, xs) return F.map(f, F.map(upp_on_strings, xs)) end
+_ENV.mapi = function(f, xs) return F.mapi(f, F.map(upp_on_strings, xs)) end
+_ENV.mapt = function(f, t) return F.mapt(f, F.mapt(upp_on_strings, t)) end
+_ENV.mapk = function(f, t) return F.mapk(f, F.mapt(upp_on_strings, t)) end
 
-local function uniq(t)
-    local u = {}
-    local seen = {}
-    for _, x in ipairs(t) do
-        if not seen[x] then
-            table.insert(u, x)
-            seen[x] = true
-        end
-    end
-    return u
-end
+_ENV.filter = function(f, xs) return F.filter(f, F.filter(upp_on_strings, xs)) end
+_ENV.filteri = function(f, xs) return F.filteri(f, F.filter(upp_on_strings, xs)) end
+_ENV.filtert = function(f, t) return F.filtert(f, F.filtert(upp_on_strings, t)) end
+_ENV.filterk = function(f, t) return F.filterk(f, F.filtert(upp_on_strings, t)) end
 
-local base_pattern = dir_sep.."[^"..dir_sep.."]*$"
-local dir_pattern = ".*"..dir_sep
-local ext_pattern = "%.[^"..dir_sep.."]*$"
+_ENV.range = F.range
 
-function dirname(path)
-    return (upp(path):gsub(base_pattern, ""))
-end
-
-function basename(path)
-    return (upp(path):gsub(dir_pattern, ""))
-end
-
-local function noext(path)
-    return (upp(path):gsub(ext_pattern, ""))
-end
-
-function join(...)
-    local ps = {}
-    for _, p in ipairs({...}) do
-        p = upp(p)
-        if p:match("^"..dir_sep) then
-            ps = {p}
-        else
-            table.insert(ps, p)
-        end
-    end
-    return table.concat(ps, dir_sep)
-end
-
-function sh(command)
-    local p = io.popen(upp(command))
-    local out = p:read("a")
-    assert(p:close())
-    return out
-end
-
-function prefix(pre)
-    return function(s) return upp(pre..s) end
-end
-
-function suffix(post)
-    return function(s) return upp(s..post) end
-end
+_ENV.concat = function(xss) return F.map(upp_on_strings, xss):concat() end
+_ENV.merge = function(ts) return F.mapt(upp_on_strings, ts):merge() end
 
 local _atexit = {}
 
@@ -227,27 +134,6 @@ local function file_stack(handlers)
         return ret
     end
     return s
-end
-
-local function keys(t)
-    local ks = {}
-    for k, _ in pairs(t) do table.insert(ks, k) end
-    table.sort(ks)
-    return ks
-end
-
-local function values(t)
-    local ks = keys(t)
-    local vs = {}
-    for _, k in ipairs(ks) do table.insert(vs, t[k]) end
-    return vs
-end
-
-local function items(t)
-    local ks = keys(t)
-    local is = {}
-    for _, k in ipairs(ks) do table.insert(is, {k, t[k]}) end
-    return is
 end
 
 --[[----------------------------------------------------------------
@@ -369,7 +255,7 @@ local function process_file(filename)
 end
 
 local function parse_args()
-    local args = clone(arg)
+    local args = F.clone(arg)
     local need_to_process_stdin = true
     local actions = {}
     local function shift(n) for _ = 1,n do table.remove(args, 1) end end
@@ -412,7 +298,7 @@ function upp(content)
         if x_mt and x_mt.__tostring then return tostring(x) end
         if type(x) == "table" then
             -- each item of an array is a separate block of text
-            return table.concat(map(tostring, x), x.sep or BLOCK_SEP or "\n")
+            return table.concat(F.map(tostring, x), x.sep or BLOCK_SEP or "\n")
         end
         return tostring(x)
     end
@@ -439,12 +325,12 @@ function output_file() return main_output_file end
 
 function include(filename) return read_file(filename) end
 
-function when(cond) return cond and id or const "" end
+function when(cond) return cond and F.id or F.const "" end
 
 function emit(name)
     name = upp(name)
     if name:match "^-" then
-        name = noext(output_stack.top())..name
+        name = fs.splitext(output_stack.top())..name
     end
     return function(content)
         output_stack.with(name, function()
@@ -455,7 +341,7 @@ function emit(name)
 end
 
 local function populate_env()
-    update_path(join(dirname(dirname(arg[0])), "lib", "upp"))
+    update_path(fs.join(fs.dirname(fs.dirname(arg[0])), "lib", "upp"))
     update_path(os.getenv "UPP_PATH")
 end
 
@@ -474,12 +360,14 @@ end
 
 local function write_dep_file()
     if dep_file_enabled then
-        local name = dep_file or (main_output_file and noext(main_output_file)..".d")
+        local name = dep_file or (main_output_file and fs.splitext(main_output_file)..".d")
         if not name then die("The dependency file name is unknown, use -MF or -o") end
         local function mklist(...)
-            return table.concat(
-                filter(function(p) return p ~= stdin_name end,
-                    sort(uniq(concat(table.unpack(map(keys, {...})))))), " ")
+            return F{...}
+                :merge()
+                :keys()
+                :filter(function(p) return p ~= stdin_name end)
+                :unwords()
         end
         local scripts = {}
         for modname, _ in pairs(package.loaded) do

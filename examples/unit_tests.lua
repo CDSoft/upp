@@ -6,7 +6,7 @@ local template_f1 = {__tostring = function(t) return ("assert(fabs(%s(%f) - %f) 
 
 function test_f1(fname)
     return function(xs)
-        return map(Test_f1(fname), xs)
+        return F.map(Test_f1(fname), xs)
     end
 end
 
