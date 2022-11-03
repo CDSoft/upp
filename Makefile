@@ -16,8 +16,7 @@
 # For further information about UPP you can visit
 # http://cdelord.fr/upp
 
-INSTALL_PATH = $(HOME)/.local/bin
-LIB_INSTALL_PATH = $(dir $(INSTALL_PATH))/lib/upp
+PREFIX ?= $(HOME)/.local/bin
 BUILD = .build
 
 UPP = $(BUILD)/upp
@@ -49,9 +48,9 @@ $(UPP): upp.lua $(LIBS)
 
 .PHONY: install
 
-install: $(INSTALL_PATH)/upp
+install: $(PREFIX)/upp
 
-$(INSTALL_PATH)/upp: $(UPP)
+$(PREFIX)/upp: $(UPP)
 	install $^ $@
 
 ####################################################################

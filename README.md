@@ -33,10 +33,15 @@ Anybody can contribute on [GitHub] to:
 ## Installation from source
 
 ``` sh
+$ git clone https://github.com/CDSoft/luax.git && make -C luax install
 $ git clone https://github.com/CDSoft/upp.git
 $ cd upp
 $ make install      # install upp in ~/.local/bin
 ```
+
+`make install` installs `upp` in `~/.local/bin`.
+The `PREFIX` variable can be defined to install `upp` to a different directory
+(e.g. `make install PREFIX=/usr/bin`).
 
 ## Precompiled binaries
 

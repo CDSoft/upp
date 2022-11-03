@@ -42,8 +42,6 @@ build()
 
     echo "{'$OS', '$ARCH', '$ARCHIVE'}," >> $INDEX_NEW
 
-    [ -f $RELEASE/$ARCHIVE ] && return
-
     case $OS in
         (windows)
             luax -o $RELEASE/upp.exe -t $ARCH-$OS-$LIBC upp.lua -autoload-all lib/*.lua
