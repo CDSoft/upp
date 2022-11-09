@@ -76,7 +76,7 @@ _ENV.dirname = uppish(fs.dirname)
 _ENV.noext = uppish(get_first, fs.splitext)
 _ENV.join = uppish(fs.join)
 
-_ENV.sh = uppish(F.fst, assert, sh.read)
+_ENV.sh = uppish(assert, sh.read)
 
 _ENV.prefix = uppish(F.prefix)
 _ENV.suffix = uppish(F.suffix)
