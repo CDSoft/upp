@@ -209,6 +209,13 @@ local function ReqDB()
     return _db
 end
 
+local function tostatus(req)
+    if not req.test then return "" end
+    if req.status == true then return " [PASS]" end
+    if req.status == false then return " [FAIL]" end
+    return " [N/E]"
+end
+
 local function define_requirement(id)
     local db = ReqDB()
     local title = nil
@@ -229,7 +236,9 @@ local function define_requirement(id)
             local t = F.concat{
                 -- header (current requirement)
                 {
-                    { ("**`%s`**"):format(req.id), req.title and ("**[%s]{}**"):format(req.title) or "" },
+                    {   ("**`%s`**"):format(req.id),
+                        (req.title and ("**[%s]{}**"):format(req.title) or "")..tostatus(req),
+                    },
                 },
                 -- body (references)
                 F(req.refs or {}):map(function(ref)
@@ -298,7 +307,7 @@ local function matrix(file)
         if req.file == file then
             t[#t+1] = {
                 ("[`%s`](%s#%s)"):format(req.id, req.file ~= db:output() and req.link or "", req.id),
-                req.title or "",
+                (req.title or "")..tostatus(req),
             }
             F(req.refs or {}):mapi(function(i, ref_id)
                 local req0 = db:getreq(ref_id)
