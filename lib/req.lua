@@ -406,12 +406,17 @@ return setmetatable({}, {
                 "node [style=filled, color=lightgrey, shape=none, fontsize=8, margin=0, height=0.16]",
             }
             local groups = {}
+            local groups_order = {}
             local links = {}
             local classes = db:classify()
             db:order():map(function(id)
                 local req = db:getreq(id)
-                local group = groups[req.file] or {}
-                groups[req.file] = group
+                local group = groups[req.file]
+                if group == nil then
+                    groups_order[#groups_order+1] = req.file
+                    group = {}
+                    groups[req.file] = group
+                end
                 group[#group+1] = ("%s[URL=\"%s#%s\", color=%s]"):format(
                     req.id, req.link, req.id,
                        classes[id].not_covered and     req.test and req.status == true  and COLOR.TEST_PASSED
@@ -426,7 +431,8 @@ return setmetatable({}, {
                 end)
             end)
             local i = 0
-            F(groups):mapk(function(file, nodes)
+            F(groups_order):map(function(file)
+                local nodes = groups[file]
                 i = i + 1
                 g[#g+1] = "subgraph cluster_"..i.." {"
                 g[#g+1] = ("  label = %q;"):format(fs.basename(file))
