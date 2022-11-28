@@ -125,6 +125,63 @@ $(BUILD)/unit_tests.c: $(UPP) examples/unit_tests.lua tests/unit_tests.c Makefil
 	clang-format -i $@
 
 ####################################################################
+# Tests: req pluggin
+####################################################################
+
+test: test_req_spec test_req_code test_req_test test_req_cov
+diff: diff_req_spec diff_req_code diff_req_test diff_req_cov
+
+export REQDB = $(BUILD)/reqdb.lua
+
+# Spec
+
+test_req_spec: $(BUILD)/test_req_spec.md tests/test_req_spec_result.md
+	diff $^
+
+diff_req_spec: $(BUILD)/test_req_spec.md tests/test_req_spec_result.md
+	diff -q $^ || meld $^
+
+$(BUILD)/test_req_spec.md: $(UPP) tests/test_req_spec.md Makefile
+	@mkdir -p $(BUILD)
+	REQTARGET=$(notdir $@) $(UPP) tests/test_req_spec.md -o $@
+
+# Code
+
+test_req_code: $(BUILD)/test_req_code.md tests/test_req_code_result.md
+	diff $^
+
+diff_req_code: $(BUILD)/test_req_code.md tests/test_req_code_result.md
+	diff -q $^ || meld $^
+
+$(BUILD)/test_req_code.md: $(UPP) tests/test_req_code.md Makefile
+	@mkdir -p $(BUILD)
+	REQTARGET=$(notdir $@) $(UPP) tests/test_req_code.md -o $@
+
+# Test
+
+test_req_test: $(BUILD)/test_req_test.md tests/test_req_test_result.md
+	diff $^
+
+diff_req_test: $(BUILD)/test_req_test.md tests/test_req_test_result.md
+	diff -q $^ || meld $^
+
+$(BUILD)/test_req_test.md: $(UPP) tests/test_req_test.md Makefile
+	@mkdir -p $(BUILD)
+	REQTARGET=$(notdir $@) $(UPP) tests/test_req_test.md -o $@
+
+# Cov
+
+test_req_cov: $(BUILD)/test_req_cov.md tests/test_req_cov_result.md
+	diff $^
+
+diff_req_cov: $(BUILD)/test_req_cov.md tests/test_req_cov_result.md
+	diff -q $^ || meld $^
+
+$(BUILD)/test_req_cov.md: $(UPP) tests/test_req_cov.md Makefile
+	@mkdir -p $(BUILD)
+	REQTARGET=$(notdir $@) $(UPP) tests/test_req_cov.md -o $@
+
+####################################################################
 # Binaries (for the latests Fedora and Ubuntu versions)
 ####################################################################
 
