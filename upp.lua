@@ -314,7 +314,7 @@ function upp(content)
             -- if the chunk returns a value, process it
             -- otherwise leave it blank
             return y ~= nil and upp(format_value(y)) or ""
-        elseif t == "?" then -- enable/disable verbatim sections
+        elseif t == "?" and t2 == "" then -- enable/disable verbatim sections
             upp_enabled = (assert(load("return "..x:sub(2, -2), x, "t")))()
             return ""
         end
