@@ -300,7 +300,7 @@ local function matrix(file)
                 ("[`%s`](%s#%s)"):format(req.id, req.file ~= db:output() and req.link or "", req.id),
                 req.title or "",
             }
-            F(req.refs or {}):map(function(ref_id, i)
+            F(req.refs or {}):mapi(function(i, ref_id)
                 local req0 = db:getreq(ref_id)
                 if i == 1 then t[#t+1] = { "", "" } end
                 t[#t+1] = {
