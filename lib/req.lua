@@ -233,54 +233,26 @@ local function define_requirement(id)
     db:add(req)
     return setmetatable(req, {
         __tostring = function(_)
-            local t = F.concat{
-                -- header (current requirement)
-                {
-                    {   ("**`%s`**"):format(req.id),
-                        (req.title and ("**[%s]{}**"):format(req.title) or "")..tostatus(req),
-                    },
-                },
-                -- body (references)
+            local t = F.flatten{
+                -- requirement
+                ("[**`%s`**]{.req}%s"):format(
+                    req.id,
+                    (req.title and (": **[%s]{}**"):format(req.title) or "")..tostatus(req)
+                ),
+                "",
+                -- references
                 F(req.refs or {}):map(function(ref)
                     local req0 = db:getreq(ref)
-                    return { ("*[`%s`](%s#%s)*"):format(req0.id, req0.file ~= req.file and req0.link or "", req0.id), req0.title or "" }
+                    return ("> *[`%s`](%s#%s)*%s"):format(
+                        req0.id, req0.file ~= req.file and req0.link or "", req0.id,
+                        (": "..req0.title) or ""
+                    )
                 end)
             }
-            local nb_columns = math.max(table.unpack(t:map(function(row) return #row end)))
-            local ws = F.range(1, nb_columns):map(function(i)
-                return math.max(table.unpack(t:map(function(row) return #row[i] end)))
-            end)
-            local total_width = nb_columns - 1 -- spaces between columns
-            ws:map(function(w) total_width = total_width + w end)
-            local sep = table.concat(ws:map(function(w) return ("-"):rep(w) end), " ")
-            local blank = table.concat(ws:map(function(w) return (" "):rep(w) end), " ")
-            local header = {
-                -- div separator with anchor "::::::::{#req}"
-                ("%s{#%s}"):format((":"):rep(total_width), req.id),
-                "",
-                -- beginning of the table "----- -----"
-                sep,
-            }
-            local footer = {
-                -- end of the table "----- -----"
-                sep,
-                "",
-                -- end of div "::::::::"
-                ("%s"):format((":"):rep(total_width)),
-            }
-            local body =
-                -- rows of the table
-                F.flatten{
-                    t:mapi(function(i, row) return {
-                        table.concat(
-                            F(row):mapi(function(j, cell) return cell..(" "):rep(ws[j]-#cell) end),
-                        " "),
-                        i > 1 and i < #t and blank or {}
-                    }
-                    end)
-                }
-            if #body > 1 then table.insert(body, 2, (sep:gsub("-", "-"))) end
-            return table.concat(F.concat{header, body, footer}, "\n")
+            while t:last() == "" do
+                table.remove(t, #t)
+            end
+            return t:unlines()
         end,
         __call = function(_, attrs)
             for k, v in pairs(attrs) do req[k] = v end
@@ -314,7 +286,7 @@ local function matrix(file)
                 if i == 1 then t[#t+1] = { "", "" } end
                 t[#t+1] = {
                     "",
-                    ("- *[`%s`](%s#%s)*: %s"):format(req0.id, req0.file ~= req.file and req0.link or "", req0.id, req0.title or ""),
+                    ("> - *[`%s`](%s#%s)*: %s"):format(req0.id, req0.file ~= req.file and req0.link or "", req0.id, req0.title or ""),
                 }
             end)
         end
