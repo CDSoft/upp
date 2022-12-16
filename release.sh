@@ -40,13 +40,19 @@ build()
         (*)         ARCHIVE=upp-$ARCH-$OS-$LIBC.tar.xz ;;
     esac
 
-    echo "{'$OS', '$ARCH', '$ARCHIVE'}," >> $INDEX_NEW
+    echo "{'$OS', '$ARCH', '$LIBC', '$ARCHIVE'}," >> $INDEX_NEW
 
-    case $OS in
-        (windows)
+    case $OS-$LIBC in
+        (windows-*)
             luax -o $RELEASE/upp.exe -t $ARCH-$OS-$LIBC upp.lua -autoload-all lib/*.lua
             zip -9 --junk-paths $RELEASE/$ARCHIVE README.md $RELEASE/upp.exe
             rm $RELEASE/upp.exe
+            ;;
+        (linux-gnu)
+            luax -o $RELEASE/upp -t $ARCH-$OS-$LIBC upp.lua -autoload-all lib/*.lua
+            SHARED_LIB=$(lddtree $RELEASE/upp 2>/dev/null | awk '$1~/libluaxruntime/ { print $3 }')
+            XZ_OPT=-9 tar cJf $RELEASE/$ARCHIVE --transform="s#.*/##" README.md $RELEASE/upp $SHARED_LIB
+            rm $RELEASE/upp
             ;;
         (*)
             luax -o $RELEASE/upp -t $ARCH-$OS-$LIBC upp.lua -autoload-all lib/*.lua
@@ -63,6 +69,10 @@ build()
 mkdir -p $RELEASE
 
 echo "return {" > $INDEX_NEW
+
+build x86_64  linux gnu
+build i386    linux gnu
+build aarch64 linux gnu
 
 build x86_64  linux musl
 build i386    linux musl
