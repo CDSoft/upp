@@ -104,8 +104,8 @@ end
 
 local function run_atexit()
     return function(_)
-        for i = #_atexit, 1, -1 do
-            _atexit[i]()
+        while #_atexit > 0 do
+            table.remove(_atexit, #_atexit)()
         end
     end
 end
