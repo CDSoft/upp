@@ -106,7 +106,7 @@ This file uses the name of the parent file as prefix.
 
 # Standard library tests
 
-@@(pretty = require "pretty")
+@@(show = require "fun".show)
 @@(BLOCK_SEP = ", ")
 
 ## range:
@@ -131,7 +131,7 @@ evens: @(filter(function(x) return x % 2 == 0 end, range(1, 10)))
 
 ## merge
 
-{a=1,b=2,c=3} + {d=4,a=5,e=6} = @(pretty(merge{{a=1,b=2,c=3},{d=4,a=5,e=6}}))
+{a=1,b=2,c=3} + {d=4,a=5,e=6} = @(show(merge{{a=1,b=2,c=3},{d=4,a=5,e=6}}))
 
 ## path
 

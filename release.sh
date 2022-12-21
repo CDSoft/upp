@@ -63,6 +63,22 @@ build()
 }
 
 ###############################################################################
+# Pure Lua sources
+###############################################################################
+
+build_src()
+{
+    local ARCH=
+    local OS="Lua"
+    local LIBC=
+    local ARCHIVE=upp-lua.tar.xz
+
+    echo "{'$OS', '$ARCH', '$LIBC', '$ARCHIVE'}," >> $INDEX_NEW
+
+    XZ_OPT=-9 tar cJf $RELEASE/$ARCHIVE --transform="s#.*/##" README.md upp.lua luax.lua
+}
+
+###############################################################################
 # Build binaries
 ###############################################################################
 
@@ -83,6 +99,8 @@ build aarch64 macos gnu
 
 build x86_64  windows gnu
 build i386    windows gnu
+
+build_src
 
 echo "}" >> $INDEX_NEW
 

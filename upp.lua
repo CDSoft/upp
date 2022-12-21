@@ -41,6 +41,8 @@ Environment variables:
     UPP_PATH        paths to add to package.path
 ]]
 
+require "luax"
+
 local F = require "fun"
 local fs = require "fs"
 local sh = require "sh"

@@ -1,1 +1,1 @@
-.build/non_discoverable_target.txt .build/other_file.md .build/test-complement.txt .build/test.md fictive_target : lib/counter.lua lib/pretty.lua lib/req.lua tests/test.md tests/test2.md tests/test_include.md tests/test_lib.lua
+.build/non_discoverable_target.txt .build/other_file.md .build/test-complement.txt .build/test.md fictive_target : ./luax.lua lib/counter.lua lib/req.lua tests/test.md tests/test2.md tests/test_include.md tests/test_lib.lua
