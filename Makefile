@@ -38,9 +38,12 @@ clean:
 
 compile: $(UPP)
 
+# Use LuaX from makex if available
+LUAX ?= luax
+
 $(UPP): upp.lua $(LIBS)
 	@mkdir -p $(dir $@)
-	luax -o $@ upp.lua -autoload-all $(LIBS)
+	$(LUAX) -o $@ upp.lua -autoload-all $(LIBS)
 
 ####################################################################
 # Installation
