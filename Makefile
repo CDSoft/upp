@@ -26,22 +26,32 @@ LIBS = $(sort $(wildcard lib/*))
 # avoid being polluted by user definitions
 export LUA_PATH := ./?.lua
 
+## Compile and test UPP
 all: compile
 all: test
 
+## Clean the build directory
 clean:
 	rm -rf $(BUILD)
+
+# include a reduced version of makex to install UPP dependencies
+include makex.mk
+
+###############################################################################
+# Help
+###############################################################################
+
+welcome:
+	@echo '${CYAN}UPP${NORMAL}'
 
 ####################################################################
 # Compilation
 ####################################################################
 
+## Compile UPP
 compile: $(UPP)
 
-# Use LuaX from makex if available
-LUAX ?= luax
-
-$(UPP): upp.lua $(LIBS)
+$(UPP): upp.lua $(LIBS) | $(LUAX)
 	@mkdir -p $(dir $@)
 	$(LUAX) -o $@ upp.lua -autoload-all $(LIBS)
 
@@ -51,6 +61,7 @@ $(UPP): upp.lua $(LIBS)
 
 .PHONY: install
 
+## Install UPP
 install: $(PREFIX)/upp
 
 $(PREFIX)/upp: $(UPP)
@@ -62,6 +73,7 @@ $(PREFIX)/upp: $(UPP)
 
 .PHONY: test
 
+## Run UPP tests
 test: test_upp test_upp_deps test_upp_non_discoverable_target
 test: test_upp_multiple_outputs_1 test_upp_multiple_outputs_2
 test: test_unit_tests
@@ -70,6 +82,7 @@ test:
 
 .PHONY: diff
 
+## Compare test results
 diff: diff_test diff_test_deps diff_test_upp_non_discoverable_target
 diff: diff_test_multiple_outputs_1 diff_test_multiple_outputs_2
 diff: diff_unit_tests
@@ -108,7 +121,7 @@ diff_test_multiple_outputs_1: $(BUILD)/test-complement.txt tests/test_result-com
 diff_test_multiple_outputs_2: $(BUILD)/other_file.md tests/test_result_other_file.md
 	diff -q $^ || meld $^
 
-$(BUILD)/test.md $(BUILD)/test.d $(BUILD)/test-complement.txt $(BUILD)/other_file.md &: $(UPP) tests/test.md tests/test2.md tests/test_include.md tests/test_lib.lua Makefile
+$(BUILD)/test.md $(BUILD)/test.d $(BUILD)/test-complement.txt $(BUILD)/other_file.md $(BUILD)/non_discoverable_target.txt &: $(UPP) tests/test.md tests/test2.md tests/test_include.md tests/test_lib.lua Makefile
 	@mkdir -p $(BUILD)
 	UPP_PATH=tests $(UPP) -p tests -p lib -e 'build="$(BUILD)"' -e 'foo="bar"' -l test_lib.lua tests/test.md tests/test2.md -o $(word 1,$@) -MT fictive_target -MT $(BUILD)/non_discoverable_target.txt -MD
 
