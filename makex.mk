@@ -96,12 +96,12 @@ help: welcome
 	@echo ''
 	@echo 'Targets:'
 	@awk '/^[a-zA-Z\-_0-9]+:/ { \
-		helpMessage = match(lastLine, /^## (.*)/); \
-		if (helpMessage) { \
-			helpCommand = substr($$1, 0, index($$1, ":")-1); \
-			helpMessage = substr(lastLine, RSTART + 3, RLENGTH); \
-			printf "  ${TARGET_COLOR}%-$(MAKEX_HELP_TARGET_MAX_LEN)s${NORMAL} ${TEXT_COLOR}%s${NORMAL}\n", helpCommand, helpMessage; \
-		} \
+	    helpMessage = match(lastLine, /^## (.*)/); \
+	    if (helpMessage) { \
+	        helpCommand = substr($$1, 0, index($$1, ":")-1); \
+	        helpMessage = substr(lastLine, RSTART + 3, RLENGTH); \
+	        printf "  ${TARGET_COLOR}%-$(MAKEX_HELP_TARGET_MAX_LEN)s${NORMAL} ${TEXT_COLOR}%s${NORMAL}\n", helpCommand, helpMessage; \
+	    } \
 	} \
 	{ lastLine = $$0 }' $(MAKEFILE_LIST)
 
@@ -145,13 +145,13 @@ $(LUAX): | $(MAKEX_CACHE) $(dir $(LUAX))
 	@echo "$(MAKEX_COLOR)[MAKEX]$(NORMAL) $(TEXT_COLOR)install LuaX$(NORMAL)"
 	@test -f $(@) \
 	|| \
-	(	(	test -d $(MAKEX_CACHE)/luax \
-			&& ( cd $(MAKEX_CACHE)/luax && git pull ) \
-			|| git clone $(LUAX_URL) $(MAKEX_CACHE)/luax \
-		) \
-		&& cd $(MAKEX_CACHE)/luax \
-		&& git checkout $(LUAX_VERSION) \
-		&& make install-all PREFIX=$(realpath $(dir $@)) \
+	(   (   test -d $(MAKEX_CACHE)/luax \
+	        && ( cd $(MAKEX_CACHE)/luax && git pull ) \
+	        || git clone $(LUAX_URL) $(MAKEX_CACHE)/luax \
+	    ) \
+	    && cd $(MAKEX_CACHE)/luax \
+	    && git checkout $(LUAX_VERSION) \
+	    && make install-all PREFIX=$(realpath $(dir $@)) \
 	)
 
 makex-install: makex-install-luax
