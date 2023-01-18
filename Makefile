@@ -19,7 +19,7 @@
 PREFIX ?= $(HOME)/.local/bin
 BUILD = .build
 
-UPP = $(BUILD)/upp
+UPP_BIN = $(BUILD)/upp
 
 LIBS = $(sort $(wildcard lib/*))
 
@@ -34,7 +34,7 @@ all: test
 clean:
 	rm -rf $(BUILD)
 
-# include a reduced version of makex to install UPP dependencies
+# include makex to install UPP dependencies
 include makex.mk
 
 ###############################################################################
@@ -49,9 +49,9 @@ welcome:
 ####################################################################
 
 ## Compile UPP
-compile: $(UPP)
+compile: $(UPP_BIN)
 
-$(UPP): upp.lua $(LIBS) | $(LUAX)
+$(UPP_BIN): upp.lua $(LIBS) | $(LUAX)
 	@mkdir -p $(dir $@)
 	$(LUAX) -o $@ upp.lua -autoload-all $(LIBS)
 
@@ -64,7 +64,7 @@ $(UPP): upp.lua $(LIBS) | $(LUAX)
 ## Install UPP
 install: $(PREFIX)/upp
 
-$(PREFIX)/upp: $(UPP)
+$(PREFIX)/upp: $(UPP_BIN)
 	install $^ $@
 
 ####################################################################
@@ -121,9 +121,9 @@ diff_test_multiple_outputs_1: $(BUILD)/test-complement.txt tests/test_result-com
 diff_test_multiple_outputs_2: $(BUILD)/other_file.md tests/test_result_other_file.md
 	diff -q $^ || meld $^
 
-$(BUILD)/test.md $(BUILD)/test.d $(BUILD)/test-complement.txt $(BUILD)/other_file.md $(BUILD)/non_discoverable_target.txt &: $(UPP) tests/test.md tests/test2.md tests/test_include.md tests/test_lib.lua Makefile
+$(BUILD)/test.md $(BUILD)/test.d $(BUILD)/test-complement.txt $(BUILD)/other_file.md $(BUILD)/non_discoverable_target.txt &: $(UPP_BIN) tests/test.md tests/test2.md tests/test_include.md tests/test_lib.lua Makefile
 	@mkdir -p $(BUILD)
-	UPP_PATH=tests $(UPP) -p tests -p lib -e 'build="$(BUILD)"' -e 'foo="bar"' -l test_lib.lua tests/test.md tests/test2.md -o $(word 1,$@) -MT fictive_target -MT $(BUILD)/non_discoverable_target.txt -MD
+	UPP_PATH=tests $(UPP_BIN) -p tests -p lib -e 'build="$(BUILD)"' -e 'foo="bar"' -l test_lib.lua tests/test.md tests/test2.md -o $(word 1,$@) -MT fictive_target -MT $(BUILD)/non_discoverable_target.txt -MD
 
 ####################################################################
 # Tests: pluggin example (unit tests generation)
@@ -135,9 +135,9 @@ test_unit_tests: $(BUILD)/unit_tests.c tests/unit_tests_result.c
 diff_unit_tests: $(BUILD)/unit_tests.c tests/unit_tests_result.c
 	diff -q $^ || meld $^
 
-$(BUILD)/unit_tests.c: $(UPP) examples/unit_tests.lua tests/unit_tests.c Makefile
+$(BUILD)/unit_tests.c: $(UPP_BIN) examples/unit_tests.lua tests/unit_tests.c Makefile
 	@mkdir -p $(BUILD)
-	$(UPP) -p examples -l unit_tests.lua tests/unit_tests.c -o $@
+	$(UPP_BIN) -p examples -l unit_tests.lua tests/unit_tests.c -o $@
 	clang-format -i $@
 
 ####################################################################
@@ -157,9 +157,9 @@ test_req_spec: $(BUILD)/test_req_spec.md tests/test_req_spec_result.md
 diff_req_spec: $(BUILD)/test_req_spec.md tests/test_req_spec_result.md
 	diff -q $^ || meld $^
 
-$(BUILD)/test_req_spec.md: $(UPP) tests/test_req_spec.md Makefile
+$(BUILD)/test_req_spec.md: $(UPP_BIN) tests/test_req_spec.md Makefile
 	@mkdir -p $(BUILD)
-	REQTARGET=$(notdir $@) $(UPP) tests/test_req_spec.md -o $@
+	REQTARGET=$(notdir $@) $(UPP_BIN) tests/test_req_spec.md -o $@
 
 # Code
 
@@ -169,9 +169,9 @@ test_req_code: $(BUILD)/test_req_code.md tests/test_req_code_result.md
 diff_req_code: $(BUILD)/test_req_code.md tests/test_req_code_result.md
 	diff -q $^ || meld $^
 
-$(BUILD)/test_req_code.md: $(UPP) tests/test_req_code.md Makefile
+$(BUILD)/test_req_code.md: $(UPP_BIN) tests/test_req_code.md Makefile
 	@mkdir -p $(BUILD)
-	REQTARGET=$(notdir $@) $(UPP) tests/test_req_code.md -o $@
+	REQTARGET=$(notdir $@) $(UPP_BIN) tests/test_req_code.md -o $@
 
 # Test
 
@@ -181,9 +181,9 @@ test_req_test: $(BUILD)/test_req_test.md tests/test_req_test_result.md
 diff_req_test: $(BUILD)/test_req_test.md tests/test_req_test_result.md
 	diff -q $^ || meld $^
 
-$(BUILD)/test_req_test.md: $(UPP) tests/test_req_test.md Makefile
+$(BUILD)/test_req_test.md: $(UPP_BIN) tests/test_req_test.md Makefile
 	@mkdir -p $(BUILD)
-	REQTARGET=$(notdir $@) $(UPP) tests/test_req_test.md -o $@
+	REQTARGET=$(notdir $@) $(UPP_BIN) tests/test_req_test.md -o $@
 
 # Cov
 
@@ -193,9 +193,9 @@ test_req_cov: $(BUILD)/test_req_cov.md tests/test_req_cov_result.md
 diff_req_cov: $(BUILD)/test_req_cov.md tests/test_req_cov_result.md
 	diff -q $^ || meld $^
 
-$(BUILD)/test_req_cov.md: $(UPP) tests/test_req_cov.md Makefile
+$(BUILD)/test_req_cov.md: $(UPP_BIN) tests/test_req_cov.md Makefile
 	@mkdir -p $(BUILD)
-	REQTARGET=$(notdir $@) $(UPP) tests/test_req_cov.md -o $@
+	REQTARGET=$(notdir $@) $(UPP_BIN) tests/test_req_cov.md -o $@
 
 ####################################################################
 # Binaries (for the latests Fedora and Ubuntu versions)
