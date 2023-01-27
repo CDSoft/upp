@@ -16,7 +16,7 @@
 # For further information about UPP you can visit
 # http://cdelord.fr/upp
 
-PREFIX ?= $(HOME)/.local/bin
+PREFIX := $(firstword $(wildcard $(PREFIX) $(HOME)/.local))
 BUILD = .build
 
 UPP_BIN = $(BUILD)/upp
@@ -62,9 +62,9 @@ $(UPP_BIN): upp.lua $(LIBS) | $(LUAX)
 .PHONY: install
 
 ## Install UPP
-install: $(PREFIX)/upp
+install: $(PREFIX)/bin/upp
 
-$(PREFIX)/upp: $(UPP_BIN)
+$(PREFIX)/bin/upp: $(UPP_BIN)
 	install $^ $@
 
 ####################################################################

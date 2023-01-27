@@ -41,7 +41,7 @@ $ make install      # install upp in ~/.local/bin
 
 `make install` installs `upp` in `~/.local/bin`.
 The `PREFIX` variable can be defined to install `upp` to a different directory
-(e.g. `make install PREFIX=/usr/bin`).
+(e.g. `make install PREFIX=/usr` to install `upp` in `/usr/bin`).
 
 **Note**: `upp` can also be installed with [makex](https://github.com/CDSoft/makex).
 
