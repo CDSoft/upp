@@ -106,7 +106,7 @@ This file uses the name of the parent file as prefix.
 
 # Standard library tests
 
-@@(show = require "fun".show)
+@@(show = require "F".show)
 @@(BLOCK_SEP = ", ")
 
 ## range:

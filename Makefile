@@ -53,7 +53,7 @@ compile: $(UPP_BIN)
 
 $(UPP_BIN): upp.lua $(LIBS) | $(LUAX)
 	@mkdir -p $(dir $@)
-	$(LUAX) -o $@ upp.lua -autoload-all $(LIBS)
+	$(LUAX) -o $@ upp.lua $(LIBS)
 
 ####################################################################
 # Installation

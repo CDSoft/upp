@@ -18,6 +18,8 @@
     http://cdelord.fr/upp
 --]]
 
+--@LOAD
+
 --[[
     Basic requirement management
     ============================
@@ -90,7 +92,7 @@
 -- }
 
 local fs = require "fs"
-local F = require "fun"
+local F = require "F"
 
 local COLOR = {
     ORPHAN = "cyan",

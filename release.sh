@@ -44,38 +44,22 @@ build()
 
     case $OS-$LIBC in
         (windows-*)
-            luax -o $RELEASE/upp.exe -t $ARCH-$OS-$LIBC upp.lua -autoload-all lib/*.lua
+            luax -o $RELEASE/upp.exe -t $ARCH-$OS-$LIBC upp.lua lib/*.lua
             zip -9 --junk-paths $RELEASE/$ARCHIVE README.md $RELEASE/upp.exe
             rm $RELEASE/upp.exe
             ;;
         (linux-gnu)
-            luax -o $RELEASE/upp -t $ARCH-$OS-$LIBC upp.lua -autoload-all lib/*.lua
+            luax -o $RELEASE/upp -t $ARCH-$OS-$LIBC upp.lua lib/*.lua
             SHARED_LIB=$(lddtree $RELEASE/upp 2>/dev/null | awk '$1~/libluaxruntime/ { print $3 }')
             XZ_OPT=-9 tar cJf $RELEASE/$ARCHIVE --transform="s#.*/##" README.md $RELEASE/upp $SHARED_LIB
             rm $RELEASE/upp
             ;;
         (*)
-            luax -o $RELEASE/upp -t $ARCH-$OS-$LIBC upp.lua -autoload-all lib/*.lua
+            luax -o $RELEASE/upp -t $ARCH-$OS-$LIBC upp.lua lib/*.lua
             XZ_OPT=-9 tar cJf $RELEASE/$ARCHIVE --transform="s#.*/##" README.md $RELEASE/upp
             rm $RELEASE/upp
             ;;
     esac
-}
-
-###############################################################################
-# Pure Lua sources
-###############################################################################
-
-build_src()
-{
-    local ARCH=
-    local OS="Lua"
-    local LIBC=
-    local ARCHIVE=upp-lua.tar.xz
-
-    echo "{'$OS', '$ARCH', '$LIBC', '$ARCHIVE'}," >> $INDEX_NEW
-
-    XZ_OPT=-9 tar cJf $RELEASE/$ARCHIVE --transform="s#.*/##" README.md upp.lua luax.lua
 }
 
 ###############################################################################
@@ -99,8 +83,6 @@ build aarch64 macos gnu
 
 build x86_64  windows gnu
 build i386    windows gnu
-
-build_src
 
 echo "}" >> $INDEX_NEW
 

@@ -20,6 +20,8 @@
     http://cdelord.fr/upp
 --]]
 
+--@MAIN
+
 local help = [[
 usage: upp [options] [files]
 
@@ -41,9 +43,7 @@ Environment variables:
     UPP_PATH        paths to add to package.path
 ]]
 
-require "luax"
-
-local F = require "fun"
+local F = require "F"
 local fs = require "fs"
 local sh = require "sh"
 
@@ -51,7 +51,7 @@ local sh = require "sh"
 --   Various functions usable in macros
 --]]----------------------------------------------------------------
 
-_ENV.F = require "fun"
+_ENV.F = require "F"
 _ENV.fs = require "fs"
 
 local nop = F.const(nil)

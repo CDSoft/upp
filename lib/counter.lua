@@ -3,6 +3,8 @@
 -- The document can define several counters, identified by their names.
 --]]
 
+--@LOAD
+
 local counters = {}
 
 local function count(counter_name, initial_value)
