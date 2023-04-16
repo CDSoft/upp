@@ -107,10 +107,10 @@ LUAX_VERSION ?= master
 UPP_VERSION ?= master
 
 # PANDOC_VERSION is the version number of pandoc
-PANDOC_VERSION ?= 3.1
+PANDOC_VERSION ?= 3.1.2
 
 # PANDOC_CLI_VERSION is the version number of pandoc-cli
-PANDOC_CLI_VERSION ?= 0.1
+PANDOC_CLI_VERSION ?= 0.1.1
 
 # PANDOC_DYNAMIC_LINK is "no" to download a statically linked executable
 # or "yes" to compile a dynamically linked executable with cabal
@@ -123,6 +123,10 @@ PANDOC_LATEX_TEMPLATE_VERSION = master
 # PANDOC_LETTER_VERSION is a tag or branch name in the
 # pandoc-letter repository
 PANDOC_LETTER_VERSION = master
+
+# PANAM_VERSION is a tag or branch name in the
+# pan-am repository
+PANAM_VERSION = master
 
 # PANDA_VERSION is a tag or branch name in the Panda repository
 PANDA_VERSION ?= master
@@ -350,7 +354,7 @@ $(PANDOC_LETTER): | $(MAKEX_CACHE) $(dir $(PANDOC_LETTER))
 # Pandoc Panam CSS
 ###########################################################################
 
-PANAM_URL = https://benjam.info/panam/styling.css
+PANAM_URL = https://github.com/CDSoft/pan-am
 PANAM_CSS = $(MAKEX_INSTALL_PATH)/pandoc/panam/styling.css
 
 $(dir $(PANAM_CSS)):
@@ -360,7 +364,14 @@ $(PANAM_CSS): | $(MAKEX_CACHE) $(dir $(PANAM_CSS))
 	@echo "$(MAKEX_COLOR)[MAKEX]$(NORMAL) $(TEXT_COLOR)install Pandoc Pan Am CSS$(NORMAL)"
 	@test -f $(@) \
 	|| \
-	wget -c $(PANAM_URL) -O $@
+	(   (   test -d $(MAKEX_CACHE)/pan-am \
+	        && ( cd $(MAKEX_CACHE)/pan-am && git pull ) \
+	        || git clone $(PANAM_URL) $(MAKEX_CACHE)/pan-am \
+	    ) \
+	    && cd $(MAKEX_CACHE)/pan-am \
+	    && git checkout $(PANAM_VERSION) \
+	    && cp $(MAKEX_CACHE)/pan-am/styling.css $@ \
+	)
 
 ###########################################################################
 # Pandoc
@@ -495,4 +506,5 @@ BEAMER += -V theme:Madrid -V colortheme:default
 LETTER = $(PANDA)
 LETTER += --to latex
 LETTER += --template=$(PANDOC_LETTER)
-LETTRE += -V lang:en
+LETTER += -V documentclass:letter
+LETTER += -V lang:en
