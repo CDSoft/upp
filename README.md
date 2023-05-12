@@ -11,6 +11,11 @@ UPP is a minimalist and generic text preprocessor using Lua macros.
 
 If you need a Pandoc preprocessor, [Panda] may be a better choice.
 
+# Warning: UPP may not be supported in the future
+
+Their is no plan to support UPP from now on.
+UPP is meant to be replaced by [ypp](http://cdelord.fr/ypp) which combines [UPP] and [Panda] features.
+
 # Open source
 
 [UPP] is an Open source software.
