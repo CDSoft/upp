@@ -113,7 +113,7 @@ This file uses the name of the parent file as prefix.
 
 1,2..10: @(range(1, 10))
 1,3..9 : @(range(1, 10, 2))
-10..1  : @(range(10, 1))
+10..1  : @(range(10, 1, -1))
 10,8..2: @(range(10, 1, -2))
 
 ## map

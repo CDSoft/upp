@@ -1,5 +1,10 @@
 # Universal PreProcessor
 
+> [!WARNING]
+> This repository is no longer maintained and has been archived.
+>
+> Please consider using [ypp](https://github.com/CDSoft/ypp) instead.
+
 [UPP]: http://cdelord.fr/upp "Universal PreProcessor"
 [Panda]: http://cdelord.fr/panda "Pandoc add-ons (Lua filters for Pandoc)"
 [Lua]: http://www.lua.org/

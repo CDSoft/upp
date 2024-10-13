@@ -92,7 +92,7 @@ compile: $(UPP_BIN)
 
 $(UPP_BIN): upp.lua $(LIBS)
 	@mkdir -p $(dir $@)
-	luax -q -o $@ upp.lua $(LIBS)
+	luax compile -q -o $@ upp.lua $(LIBS)
 
 ####################################################################
 # Installation
